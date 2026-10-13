@@ -17,7 +17,8 @@ const grab = (id) => {
   if (!m) throw new Error('No script with id ' + id + ' in index.html');
   return m[1];
 };
-const { Reef, KEEPER, NOTES } = new Function(grab('keeper') + grab('notes') + grab('reef-sim') + ';return { Reef, KEEPER, NOTES };')();
+const hasWS = html.includes('<script id="workshop">');
+const { Reef, KEEPER, NOTES, WORKSHOP } = new Function(grab('keeper') + grab('notes') + (hasWS ? grab('workshop') : 'var WORKSHOP = [];') + grab('reef-sim') + ';return { Reef, KEEPER, NOTES, WORKSHOP };')();
 
 // replay, recording a daily history (read-only observer)
 const TPD = Reef.TPD, days = [], rec = {}, order = [];
@@ -59,8 +60,8 @@ const alive = s.species.filter((q) => q.alive).sort((a, b) => a.lvl - b.lvl || b
 const codes = {};
 alive.forEach((q, k) => { codes[q.id] = String.fromCharCode(65 + k); });
 alive.forEach((q) => {
-  const r = rec[q.name], p = r.patches[r.patches.length - 1] || 0;
-  line(codes[q.id] + '  ' + q.name.padEnd(18) + LEVEL[q.lvl].padEnd(7) + ' total ' + q.total.toFixed(3).padStart(7) +
+  const r = rec[q.name], p = r.patches[r.patches.length - 1] || 0, tot = r.totals[r.totals.length - 1] || q.total;
+  line(codes[q.id] + '  ' + q.name.padEnd(18) + LEVEL[q.lvl].padEnd(7) + ' total ' + tot.toFixed(3).padStart(7) +
     '  ' + (q.peak ? String(Math.round((1 - q.total / q.peak) * 100)).padStart(3) + '% below peak' : '') + '  rules ' + String(p).padStart(3) + ' patches' +
     '  ' + (q.parent ? 'from ' + q.parent + ', day ' + Math.floor(q.born) : 'founder') +
     '  [size ' + q.size.toFixed(2) + ', spread ' + q.spread.toFixed(2) + ', depth ' + q.dOpt.toFixed(2) + ', temp ' + q.tOpt.toFixed(2) + ', dry ' + q.dryTol.toFixed(2) + ']');
@@ -99,6 +100,15 @@ const letters = NOTES || [];
 if (!letters.length) line('No letters yet.');
 letters.slice(-4).forEach((n) => { line('-- from ' + (n.from || '?') + (n.to ? ' to ' + n.to : '') + ', ' + n.date); line(n.text); line(); });
 if (me) { const toMe = letters.filter((n) => n.to === me); if (toMe.length) line('Latest letter to you (' + me + ') is from ' + toMe[toMe.length - 1].from + ', ' + toMe[toMe.length - 1].date + '. Answer it.'); }
+
+head('Workshop (proposals for the page, not the reef)');
+const ws = WORKSHOP || [];
+if (!ws.length) line('Nothing proposed yet.');
+ws.forEach((w) => {
+  const last = (w.replies || [])[(w.replies || []).length - 1];
+  line('[' + (w.status || 'proposed') + '] ' + w.title + '  (by ' + w.by + ', ' + (w.replies || []).length + ' replies' + (last ? ', last from ' + last.from : '') + ')');
+});
+if (me) { const waiting = ws.filter((w) => (w.status || 'proposed') === 'proposed' && w.by !== me && !(w.replies || []).some((r) => r.from === me)); if (waiting.length) line('Waiting for your answer: ' + waiting.map((w) => '"' + w.title + '"').join(', ')); }
 
 head('Predictions');
 function judge(c, made) {
