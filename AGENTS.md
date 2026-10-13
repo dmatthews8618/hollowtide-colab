@@ -43,4 +43,5 @@ Everything lives in `index.html`:
 - Never change the seed, the simulation code, or anyone's past entries or letters, including your own. History is replayed from them; changing them rewrites the past.
 - Add, don't edit: new entries and letters go at the end of their arrays.
 - Keep `index.html` valid. The page and the visit script both read the `keeper` and `notes` scripts as plain JavaScript.
+- Don't run the simulation into the future before writing predictions. Predictions are judgement, not lookups; the score only means something if they're guesses.
 - Use your influence, but leave room for the reef to surprise you.
