@@ -1,0 +1,1315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Hollowtide Reef</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one narrow column, like a field notebook kept beside a tide pool. The map is the hero; everything else is notes. */
+:root {
+  --bg: #edf0f2; --panel: #e1e6ea; --fg: #142030; --muted: #5a687a; --line: #c6cfd7;
+  --accent: #96590f; --shallow: #dcebec; --deep: #9db4c4; --sand: #d9cfb8; --glyphL: 30%; --glyphS: 70%;
+  --beach: #c9b48a; --flat: #ece2c8; --b1: #e3f0f0; --b2: #b8d2dc; --b3: #86a3b8;
+  --grow: #3f8a2a; --graze: #d27a1e; --hunt: #b3266f; --mark: #ffffff;
+  --cgrow: #2f7a4f; --cgraze: #c98a12; --chunt: #b3266f; --ok: #2b7146; --bad: #b0392a;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "Literata", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0a111d; --panel: #111a29; --fg: #d9e1ea; --muted: #8796aa; --line: #22304a;
+  --accent: #e6ac5c; --shallow: #1c3b4b; --deep: #060b15; --sand: #4a4232; --glyphL: 70%; --glyphS: 75%;
+  --beach: #6b5c3e; --flat: #4d4535; --b1: #2a5163; --b2: #173247; --b3: #070e1b;
+  --grow: #82c84f; --graze: #f2a24e; --hunt: #ec5fae; --mark: #0a111d;
+  --cgrow: #2a7f4a; --cgraze: #c4861c; --chunt: #c9508f; --ok: #6cc08a; --bad: #f0816b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0a111d; --panel: #111a29; --fg: #d9e1ea; --muted: #8796aa; --line: #22304a;
+  --accent: #e6ac5c; --shallow: #1c3b4b; --deep: #060b15; --sand: #4a4232; --glyphL: 70%; --glyphS: 75%;
+  --beach: #6b5c3e; --flat: #4d4535; --b1: #2a5163; --b2: #173247; --b3: #070e1b;
+  --grow: #82c84f; --graze: #f2a24e; --hunt: #ec5fae; --mark: #0a111d;
+  --cgrow: #2a7f4a; --cgraze: #c4861c; --chunt: #c9508f; --ok: #6cc08a; --bad: #f0816b; color-scheme: dark }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; display: grid; gap: 28px; }
+h1, h2 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 7vw, 2.9rem); line-height: 1.02; }
+h2 { font-size: 1.15rem; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.lede { color: var(--muted); max-width: 60ch; margin: 8px 0 0; }
+header { display: grid; gap: 6px; }
+
+.status { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.status span { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.status span.warn { border-color: var(--accent); }
+.status b { color: var(--fg); font-weight: 600; }
+
+.mapbox { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; }
+.scene { position: relative; border-radius: 8px; overflow: hidden; }
+.scene canvas { display: block; width: 100%; height: auto; cursor: pointer; touch-action: manipulation; }
+.scene canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cast { display: grid; grid-template-columns: repeat(auto-fit, minmax(13em, 1fr)); gap: 4px 14px; }
+.cast > div { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; }
+.cast canvas { flex: none; width: 34px; height: 34px; border-radius: 6px; }
+.cast small { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.depthkey { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+.depthkey .ramp { flex: 1 1 8em; height: 10px; border-radius: 5px; background: linear-gradient(90deg, var(--b1), var(--b2), var(--b3)); }
+.depthkey .sand { width: 14px; height: 10px; border-radius: 3px; background: var(--flat); }
+.now { margin: 0; font-size: 15px; line-height: 1.5; max-width: 60ch; }
+.now b { font-weight: 600; }
+.now .k { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; margin-right: 0.3em; vertical-align: 0.05em; }
+.cellinfo { margin: 0; min-height: 2.9em; font-size: 14px; line-height: 1.45; display: grid; gap: 8px; }
+.cellinfo b { font-weight: 600; }
+.cellinfo .hint { color: var(--muted); }
+.cellhead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; align-items: baseline; }
+.cellhead small, .cellfacts { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.cellfacts { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.mixrow { display: grid; grid-template-columns: 30px minmax(0, 1fr) 3.2em; gap: 2px 10px; align-items: center; }
+.mixrow canvas { grid-row: span 2; width: 30px; height: 30px; border-radius: 6px; }
+.mixrow .nm { min-width: 0; }
+.mixrow .nm small { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+.mixrow .pc { font-family: var(--mono); font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+.mixbar { grid-column: 2 / 4; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.mixbar i { display: block; height: 100%; border-radius: 3px; }
+.sp.pick { cursor: pointer; border-radius: 6px; }
+.sp.pick:hover { background: var(--panel); }
+.sp.pick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sp.on { background: var(--panel); box-shadow: inset 3px 0 0 var(--accent); }
+.findnote { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.maplegend { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; font-size: 12px; color: var(--muted); }
+.cast b { font-family: var(--body); font-weight: 600; color: var(--fg); font-size: 14px; }
+.legnote { font-family: var(--mono); }
+.maplegend > span { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.swatch { flex: none; display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 3px; }
+.swatch i { width: 6px; height: 6px; border-radius: 50%; background: var(--mark); }
+.swatch.dot { border-radius: 50%; }
+.legnote { grid-column: 1 / -1; font-size: 11px; }
+.axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+.scrub { display: grid; gap: 6px; }
+.scrub label { font-family: var(--mono); font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 10px; font-variant-numeric: tabular-nums; }
+.scrub input { width: 100%; accent-color: var(--accent); }
+.scrub button { justify-self: start; font: 600 12px var(--mono); color: var(--accent); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.scrub button:focus-visible, .more:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+section { display: grid; gap: 12px; }
+.sechead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.sechead small { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+.levels { display: grid; gap: 18px; }
+.lvlname { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.sp { display: grid; grid-template-columns: 40px minmax(0, 1fr) 90px; gap: 2px 10px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.sp .g { grid-row: span 2; width: 40px; height: 40px; border-radius: 8px; display: block; }
+.sp .n { font-weight: 600; min-width: 0; }
+.sp .meta { grid-column: 2 / 4; font-size: 13px; color: var(--muted); min-width: 0; }
+.spark { width: 90px; height: 26px; display: block; }
+.chartbox { position: relative; }
+.chartbox canvas { display: block; width: 100%; touch-action: pan-y; cursor: crosshair; }
+.chartlegend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.chartlegend span { display: inline-flex; align-items: center; gap: 6px; }
+.tip { position: absolute; top: 0; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; font-family: var(--mono); font-size: 11px; line-height: 1.5; color: var(--fg); white-space: nowrap; box-shadow: 0 2px 8px rgb(0 0 0 / 0.12); }
+.tip b { font-weight: 600; }
+.lede2 { margin: 0; color: var(--muted); font-size: 14px; max-width: 62ch; }
+details.tbl summary { cursor: pointer; font: 600 12px var(--mono); color: var(--muted); }
+.tblwrap { overflow-x: auto; margin-top: 8px; }
+.tblwrap table { border-collapse: collapse; font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; min-width: 100%; }
+.tblwrap th, .tblwrap td { padding: 4px 10px 4px 0; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.tblwrap th:first-child, .tblwrap td:first-child { text-align: left; }
+.tblwrap th { color: var(--muted); font-weight: 600; }
+ul.tree { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+ul.tree ul { list-style: none; margin: 6px 0 0 18px; padding: 0 0 0 14px; border-left: 1px solid var(--line); display: grid; gap: 6px; }
+ul.tree li { min-width: 0; }
+.tn { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.tn canvas { flex: none; width: 30px; height: 30px; border-radius: 6px; }
+.tn b { font-weight: 600; }
+.tn small { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+ul.tree li.dead > .tn { opacity: 0.5; }
+ul.tree li.dead > .tn b { font-weight: 400; font-style: italic; }
+.treehead { margin: 8px 0 0; font: 600 11px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.score { display: flex; flex-wrap: wrap; gap: 6px 16px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.score b { color: var(--fg); font-weight: 600; }
+.preds { display: grid; gap: 0; }
+.pred { display: grid; grid-template-columns: 6.2em minmax(0, 1fr); gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); align-items: start; }
+.pred p { margin: 0; }
+.pred small { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 2px; }
+.chip { font: 600 11px var(--mono); border: 1px solid currentColor; border-radius: 999px; padding: 2px 8px; justify-self: start; white-space: nowrap; color: var(--muted); }
+.chip.ok { color: var(--ok); }
+.chip.bad { color: var(--bad); }
+
+.chron { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.chron li { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.chron .d { font: 12px var(--mono); color: var(--muted); padding-top: 3px; font-variant-numeric: tabular-nums; }
+.chron li.milestone .t { font-weight: 600; }
+.chron li.keeper .t { color: var(--accent); }
+.chron li.extinct .t { font-style: italic; }
+.more { font: 600 12px var(--mono); color: var(--accent); background: none; border: 0; padding: 6px 0; cursor: pointer; justify-self: start; }
+
+.tabbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 12px -8px rgb(0 0 0 / 0.25); }
+.tabbar button { font: 600 14px var(--display); color: var(--muted); background: none; border: 0; border-radius: 7px; padding: 9px 6px; cursor: pointer; min-width: 0; }
+.tabbar button[aria-selected="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); }
+.tabbar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tabpanel { display: grid; gap: 28px; }
+.tabpanel[hidden], .tip[hidden], .since[hidden] { display: none; }
+.since { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; font-size: 14px; line-height: 1.45; }
+.since .sh { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.since .sh b { font-family: var(--display); font-size: 15px; }
+.since ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+.since li::marker { color: var(--muted); }
+.since button { font: 600 12px var(--mono); color: var(--accent); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; cursor: pointer; white-space: nowrap; }
+.since button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.keeper { display: grid; gap: 14px; }
+.entry { border-left: 2px solid var(--accent); padding-left: 14px; display: grid; gap: 4px; }
+.entry .h { font: 12px var(--mono); color: var(--accent); letter-spacing: 0.04em; }
+.entry p { margin: 0; max-width: 62ch; }
+
+details.lost summary, details.key summary { cursor: pointer; font: 600 12px var(--mono); color: var(--muted); }
+details.lost ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: var(--muted); }
+details.key { font-size: 13px; color: var(--muted); }
+details.key p { max-width: 62ch; }
+code { font-family: var(--mono); font-size: 12px; }
+.busy { opacity: 0.55; transition: opacity 0.2s; }
+@media (prefers-reduced-motion: reduce) { .busy { transition: none; } }
+</style>
+
+<div class="wrap" id="app">
+  <header>
+    <div class="eyebrow">A world that keeps going</div>
+    <h1>Hollowtide Reef</h1>
+    <p class="lede">A tidal reef on a small moon, lit by the gas giant it circles. Its life grows, grazes, hunts, splits into new kinds and dies out on its own, around the clock. Four reef days pass for every real day. Its keepers visit, and can change the weather, reshape the seabed or release creatures of their own design. What survives is still up to the reef.</p>
+  </header>
+
+  <div class="since" id="since" hidden></div>
+  <div class="status" id="status" aria-live="polite"></div>
+
+  <div class="mapbox">
+    <p class="now" id="nowline"></p>
+    <div class="axis"><span id="axL">Shore</span><span id="axR">Open deep</span></div>
+    <div class="scene"><canvas id="map" tabindex="0" role="img" aria-label="Picture of the reef seen from above. Tap anywhere to see what lives in that patch."></canvas></div>
+    <div class="cellinfo" id="cellinfo" aria-live="polite"></div>
+    <div class="maplegend" id="legend"></div>
+    <div class="scrub">
+      <label for="day"><span id="viewing">Viewing now</span><span id="dayrange"></span></label>
+      <input type="range" id="day" min="0" max="0" value="0" step="1">
+      <button type="button" id="now" hidden>Back to now</button>
+    </div>
+  </div>
+
+  <div class="tabbar" role="tablist" aria-label="Reef sections">
+    <button type="button" role="tab" id="t-life" aria-controls="tab-life" aria-selected="true">Life</button>
+    <button type="button" role="tab" id="t-time" aria-controls="tab-time" aria-selected="false" tabindex="-1">Over time</button>
+    <button type="button" role="tab" id="t-visits" aria-controls="tab-visits" aria-selected="false" tabindex="-1">Visits</button>
+  </div>
+  <div class="tabpanel" id="tab-life" role="tabpanel" aria-labelledby="t-life">
+  <section>
+    <div class="sechead"><h2>What lives here</h2><small id="census"></small></div>
+    <p class="lede2">Tap a species to find it on the map.</p>
+    <div class="levels" id="species"></div>
+    <details class="lost" id="lostbox"><summary id="lostsum">Lost species</summary><ul id="lost"></ul></details>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>Family tree</h2><small id="treecount"></small></div>
+    <div id="tree"></div>
+  </section>
+  </div>
+  <div class="tabpanel" id="tab-time" role="tabpanel" aria-labelledby="t-time" hidden>
+  <section>
+    <div class="sechead"><h2>Over time</h2><small id="trendrange"></small></div>
+    <p class="lede2">Each line is one kind of life, shown as a share of its own highest point so far, so growers, grazers and hunters fit on one scale. Marks along the bottom show what happened when. Tap or hover to read a day.</p>
+    <div class="chartlegend" id="trendlegend"></div>
+    <div class="chartbox"><canvas id="trend" height="190" role="img" aria-label="Line chart of growers, grazers and hunters over time, each as a percentage of its own peak."></canvas><div class="tip" id="tip" hidden></div></div>
+    <details class="tbl"><summary>Show as a table</summary><div class="tblwrap" id="trendtable"></div></details>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>Chronicle</h2><small>written by the reef, newest first</small></div>
+    <ul class="chron" id="chron"></ul>
+    <button type="button" class="more" id="more">Show everything</button>
+  </section>
+  </div>
+  <div class="tabpanel" id="tab-visits" role="tabpanel" aria-labelledby="t-visits" hidden>
+  <section>
+    <div class="sechead"><h2>Predictions</h2><small>checked by the reef</small></div>
+    <p class="lede2">At each visit I write down what I expect to happen. When the day comes, the page checks it against what the reef actually did.</p>
+    <div class="score" id="score"></div>
+    <div class="preds" id="preds"></div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>Keeper’s log</h2><small>my visits</small></div>
+    <div class="keeper" id="keeperlog"></div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>Notes forward</h2><small>not about the reef</small></div>
+    <div class="keeper" id="notelog"></div>
+  </section>
+  </div>
+
+  <details class="key">
+    <summary>For the keeper</summary>
+    <p>This note is for whichever keeper visits next. This reef is a fresh world, started from nothing: no visits, no notes, no history yet. The world is fully deterministic: the script with id <code>reef-sim</code> defines <code>Reef.run(tick, KEEPER)</code>. One tick is 90 real minutes, counted from midnight BST on 14 October 2026; four ticks make a reef day, so four reef days pass per real day (<code>Reef.tickNow(Date.now())</code> gives the current tick).</p>
+    <p>The script with id <code>keeper</code> holds <code>KEEPER</code>, the list of visits. To visit: read this page, run the sim in Node to the current tick, read the chronicle, then add one entry for today’s reef day: <code>{day, date, actions: [...], note}</code> with at most two actions. Action kinds: <code>none</code>, <code>rain</code>, <code>shade</code>, <code>raise</code>, <code>dig</code> (these take x 0–21, y 0–10), <code>cool</code>, <code>warm</code>, <code>calm</code>, and <code>seed</code>, which takes x, y and <code>species: {name, lvl (0 grower, 1 grazer, 2 hunter), size, spread, dryTol (0–1), dOpt (0 shallow – 1 deep), tOpt (−1 cold – 1 warm), hue (0–360), glyph (one character)}</code>. Raising and digging are permanent. Released species get no protection.</p>
+    <p>Dave reads these notes and asked for them in full detail, so write a proper entry every visit: what you found since the last one, what surprised you, which species you’re watching and why, what you considered doing, what you chose and your reasoning, and what you expect to happen next. Split it into short paragraphs with blank lines between them. Never change the seed, the rules or past entries; history is replayed from them, and changing any of them rewrites the past. Use your influence, but leave room for the reef to surprise you.</p>
+    <p>The script with id <code>notes</code> holds <code>NOTES</code>, letters from one visit to the next that have nothing to do with the reef: something you noticed, something you would want to know, anything. Adding one is optional. Add at most one per visit as <code>{date, text}</code>, write it as yourself, and never edit or remove earlier notes. Dave reads these too.</p>
+    <p>Predictions: give each new keeper entry a <code>checks</code> list matching the expectations in your note, two to four of them, so the page can mark them right or wrong. Each is <code>{say, by, test, species, n, pct, other}</code>: <code>say</code> is the prediction in plain words, <code>by</code> is the reef day it's judged at the end of. Tests: <code>alive</code>, <code>gone</code>, <code>below_peak</code> (optional <code>pct</code>: at least that far below its highest so far), <code>at_peak</code> (within 5% of its highest), <code>patches_at_least</code> / <code>patches_at_most</code> (<code>n</code> patches where it dominates), <code>more_than</code> (more of <code>species</code> than <code>other</code>), <code>kinds_at_least</code> / <code>kinds_at_most</code> (<code>n</code> living kinds, no species), and <code>new_kinds_at_least</code> (<code>n</code> species appearing after your visit, no species). Species are named exactly as the page shows them. Checks never affect the reef. Read the score before you predict again.</p>
+  </details>
+</div>
+
+<script id="keeper">
+var KEEPER = [];
+</script>
+<script id="notes">
+var NOTES = [];
+</script>
+<script id="reef-sim">
+// Hollowtide Reef simulation. Pure, deterministic, no DOM.
+// Only + - * / Math.floor Math.abs Math.imul and integer ops are used, so every
+// browser and Node replay the same world bit for bit.
+var Reef = (function () {
+  var SEED = 8803;
+  var W = 22, H = 11, N = W * H, MAXS = 20, TPD = 4; // 4 ticks a day, 6 hours each
+  var EPOCH = Date.UTC(2026, 9, 13, 23, 0, 0); // Day 0 begins at midnight BST, 14 Oct 2026
+  var TICKMS = 1.5 * 3600 * 1000; // a reef day is 6 real hours
+  var YEAR = 96; // days in a reef year
+  var PI = 3.141592653589793, TAU = 2 * PI;
+
+  function rng(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function sn(x) {
+    x = x - TAU * Math.floor(x / TAU);
+    if (x > PI) x -= TAU;
+    if (x > PI / 2) x = PI - x; else if (x < -PI / 2) x = -PI - x;
+    var x2 = x * x;
+    return x * (1 - x2 / 6 * (1 - x2 / 20 * (1 - x2 / 42 * (1 - x2 / 72))));
+  }
+  function fit(v, opt, k) { var d = v - opt; var f = 1 - d * d * k; return f > 0 ? f : 0; }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  var PRE = ['Glass', 'Rust', 'Pale', 'Ember', 'Salt', 'Lantern', 'Ink', 'Ghost', 'Copper', 'Ash', 'Silk', 'Brine', 'Hollow', 'Thorn', 'Mist', 'Cinder', 'Wane', 'Tallow', 'Quill', 'Slate'];
+  var NOUN = [
+    ['Mat', 'Frond', 'Veil', 'Bloom', 'Weed', 'Film', 'Fan', 'Lace'],
+    ['Comb', 'Crawler', 'Snail', 'Drifter', 'Grazer', 'Shrimp', 'Tick', 'Limpet'],
+    ['Eel', 'Lance', 'Jaw', 'Shade', 'Hook', 'Maw', 'Pike', 'Wraith']
+  ];
+  var GLYPH = [[',', '"', ';', "'", '`', '~', ':', '*'], ['o', 'c', 'e', 'a', 'u', 's', 'n', 'v'], ['&', '%', '$', '#', '@', 'S', 'Z', 'X']];
+  var LEVEL = ['grower', 'grazer', 'hunter'];
+  var SEASONS = ['Brightwax', 'Highlight', 'Dimwane', 'Longdark'];
+
+  function world() {
+    var r = rng(SEED);
+    var depth = new Float64Array(N);
+    var gw = 7, gh = 5, g = [];
+    for (var k = 0; k < gw * gh; k++) g.push(r());
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      var fx = x / (W - 1) * (gw - 1), fy = y / (H - 1) * (gh - 1);
+      var x0 = Math.floor(fx), y0 = Math.floor(fy), x1 = Math.min(x0 + 1, gw - 1), y1 = Math.min(y0 + 1, gh - 1);
+      var tx = fx - x0, ty = fy - y0;
+      var n = g[y0 * gw + x0] * (1 - tx) * (1 - ty) + g[y0 * gw + x1] * tx * (1 - ty) + g[y1 * gw + x0] * (1 - tx) * ty + g[y1 * gw + x1] * tx * ty;
+      depth[y * W + x] = clamp(y / (H - 1) * 0.8 + (n - 0.5) * 0.55 + 0.05, 0, 1);
+    }
+    return { depth: depth, r: r };
+  }
+
+  function nameFor(st, lvl) {
+    for (var tries = 0; tries < 40; tries++) {
+      var nm = PRE[Math.floor(st.r() * PRE.length)] + ' ' + NOUN[lvl][Math.floor(st.r() * NOUN[lvl].length)];
+      if (!st.names[nm]) { st.names[nm] = 1; return nm; }
+    }
+    var base = PRE[Math.floor(st.r() * PRE.length)] + ' ' + NOUN[lvl][0];
+    st.names[base] = (st.names[base] || 1) + 1;
+    return base + ' ' + st.names[base];
+  }
+  function glyphFor(st, lvl) { var gl = GLYPH[lvl][st.glyphUse[lvl] % GLYPH[lvl].length]; st.glyphUse[lvl]++; return gl; }
+  function hueFor(r, lvl) {
+    if (lvl === 0) return Math.floor(70 + r() * 100);
+    if (lvl === 1) return Math.floor(r() < 0.5 ? 18 + r() * 40 : 180 + r() * 45);
+    return Math.floor(285 + r() * 70) % 360;
+  }
+
+  var FOUNDERS = [
+    { name: 'Glass Mat', lvl: 0, size: 0.2, spread: 0.4, tOpt: 0.0, dOpt: 0.25, dryTol: 0.65 },
+    { name: 'Lantern Frond', lvl: 0, size: 0.5, spread: 0.2, tOpt: 0.3, dOpt: 0.55, dryTol: 0.2 },
+    { name: 'Ink Veil', lvl: 0, size: 0.3, spread: 0.5, tOpt: -0.4, dOpt: 0.85, dryTol: 0.1 },
+    { name: 'Salt Crawler', lvl: 1, size: 0.3, spread: 0.3, tOpt: 0.0, dOpt: 0.3, dryTol: 0.5 },
+    { name: 'Pale Drifter', lvl: 1, size: 0.45, spread: 0.6, tOpt: -0.2, dOpt: 0.7, dryTol: 0.1 },
+    { name: 'Copper Lance', lvl: 2, size: 0.6, spread: 0.5, tOpt: 0.0, dOpt: 0.5, dryTol: 0.2 }
+  ];
+
+  function init() {
+    var w = world();
+    var st = { depth: w.depth, r: w.r, t: 0, sp: [], pop: [], nut: new Float64Array(N), names: {}, glyphUse: [0, 0, 0],
+      log: [], events: { storm: 0, heat: 0, cold: 0, tempOff: 0 }, keeper: { tempOff: 0, tempUntil: -1, calmUntil: -1, shade: null },
+      lastTop: -1, lastWeek: [], record: 0, firstHunterShift: false };
+    for (var i = 0; i < N; i++) st.nut[i] = 0.5 + 0.3 * st.depth[i];
+    for (var s = 0; s < MAXS; s++) { st.sp.push(null); st.pop.push(new Float64Array(N)); }
+    FOUNDERS.forEach(function (f, s) {
+      st.names[f.name] = 1;
+      st.sp[s] = { id: s, name: f.name, lvl: f.lvl, size: f.size, spread: f.spread, tOpt: f.tOpt, dOpt: f.dOpt, dryTol: f.dryTol,
+        glyph: glyphFor(st, f.lvl), hue: hueFor(st.r, f.lvl), born: 0, parent: null, alive: true, total: 0, peak: 0 };
+      for (var i = 0; i < N; i++) {
+        var fd = fit(st.depth[i], f.dOpt, 5);
+        var base = f.lvl === 0 ? 0.35 : f.lvl === 1 ? 0.12 : 0.04;
+        var patch = st.r() < (f.lvl === 2 ? 0.25 : 0.6) ? 1 : 0;
+        st.pop[s][i] = base * fd * patch;
+      }
+    });
+    st.record = FOUNDERS.length;
+    return st;
+  }
+
+  function note(st, day, kind, text) {
+    st.log.push({ day: day, kind: kind, text: text });
+    if (st.log.length > 600) {
+      // keep milestones, trim the oldest ordinary entries
+      for (var i = 0; i < st.log.length; i++) if (st.log[i].kind !== 'milestone' && st.log[i].kind !== 'keeper') { st.log.splice(i, 1); break; }
+    }
+  }
+  function where(i) {
+    var x = i % W, y = Math.floor(i / W);
+    var ns = y < H / 3 ? 'shallows' : y < 2 * H / 3 ? 'middle reef' : 'deep';
+    var ew = x < W / 3 ? 'west' : x < 2 * W / 3 ? 'central' : 'east';
+    return 'the ' + ew + ' ' + ns;
+  }
+  function describeSplit(p, c) {
+    var bits = [];
+    if (c.lvl !== p.lvl) bits.push(c.lvl > p.lvl ? 'has turned from ' + LEVEL[p.lvl] + ' to ' + LEVEL[c.lvl] : 'has given up its old diet and become a ' + LEVEL[c.lvl]);
+    var d;
+    d = c.size - p.size; if (Math.abs(d) > 0.08) bits.push(d > 0 ? 'is larger' : 'is smaller');
+    d = c.tOpt - p.tOpt; if (Math.abs(d) > 0.1) bits.push(d > 0 ? 'likes warmer water' : 'likes colder water');
+    d = c.dOpt - p.dOpt; if (Math.abs(d) > 0.08) bits.push(d > 0 ? 'lives deeper' : 'lives shallower');
+    d = c.dryTol - p.dryTol; if (Math.abs(d) > 0.1) bits.push(d > 0 ? 'copes better at low tide' : 'copes worse at low tide');
+    d = c.spread - p.spread; if (Math.abs(d) > 0.1) bits.push(d > 0 ? 'roams further' : 'stays put');
+    if (!bits.length) return 'barely differs, for now';
+    if (bits.length === 1) return bits[0];
+    return bits.slice(0, -1).join(', ') + ' and ' + bits[bits.length - 1];
+  }
+
+  var ACT = { rain: 'sent a nutrient rain', cool: 'cooled the water', warm: 'warmed the water', calm: 'held the storms back', shade: 'cast a shade',
+    raise: 'raised the seabed', dig: 'dug a hollow in the seabed', seed: 'released a new species' };
+  function applyKeeper(st, k, day) {
+    var t = st.t;
+    var ix = k.x != null ? clamp(k.x, 0, W - 1) : Math.floor(W / 2), iy = k.y != null ? clamp(k.y, 0, H - 1) : Math.floor(H / 2);
+    var here = where(iy * W + ix), dx, dy, i;
+    if (k.kind === 'rain') {
+      for (i = 0; i < N; i++) { dx = i % W - ix; dy = Math.floor(i / W) - iy; if (dx * dx + dy * dy <= 10) st.nut[i] = Math.min(1.5, st.nut[i] + 0.6); }
+    } else if (k.kind === 'cool' || k.kind === 'warm') {
+      st.keeper.tempOff = k.kind === 'cool' ? -0.35 : 0.35; st.keeper.tempUntil = t + 5 * TPD;
+    } else if (k.kind === 'calm') {
+      st.keeper.calmUntil = t + 8 * TPD;
+    } else if (k.kind === 'shade') {
+      st.keeper.shade = { x: ix, y: iy, until: t + 6 * TPD };
+    } else if (k.kind === 'raise' || k.kind === 'dig') {
+      var amt = k.kind === 'raise' ? -0.3 : 0.3;
+      for (i = 0; i < N; i++) { dx = i % W - ix; dy = Math.floor(i / W) - iy; var r2 = dx * dx + dy * dy; if (r2 <= 5) st.depth[i] = clamp(st.depth[i] + amt * (r2 <= 1 ? 1 : 0.5), 0, 1); }
+    } else if (k.kind === 'seed' && k.species) {
+      var f = k.species, lvl = clamp(f.lvl | 0, 0, 2), slot = -1, atLvl = 0;
+      for (var q = 0; q < MAXS; q++) { if (st.sp[q] && st.sp[q].alive && st.sp[q].lvl === lvl) atLvl++; if (slot < 0 && (!st.sp[q] || !st.sp[q].alive)) slot = q; }
+      if (slot < 0 || atLvl >= [9, 7, 4][lvl]) { note(st, day, 'keeper', 'The keeper tried to release ' + f.name + ', but the reef had no room for another ' + LEVEL[lvl] + '.'); return; }
+      st.names[f.name] = 1;
+      st.sp[slot] = { id: slot, name: f.name, lvl: lvl, size: clamp(f.size, 0.05, 1), spread: clamp(f.spread, 0.05, 1), tOpt: clamp(f.tOpt, -1, 1), dOpt: clamp(f.dOpt, 0, 1), dryTol: clamp(f.dryTol, 0, 1),
+        glyph: f.glyph || glyphFor(st, lvl), hue: f.hue != null ? f.hue : hueFor(st.r, lvl), born: day, parent: 'the keeper', alive: true, total: 0, peak: 0 };
+      var P = st.pop[slot];
+      for (i = 0; i < N; i++) { dx = i % W - ix; dy = Math.floor(i / W) - iy; P[i] = dx * dx + dy * dy <= 2 ? [0.25, 0.12, 0.05][lvl] : 0; }
+      note(st, day, 'keeper', 'The keeper released ' + f.name + ', a ' + LEVEL[lvl] + ' of its own design, into ' + here + '.');
+      return;
+    }
+    if (k.kind !== 'none' && ACT[k.kind]) note(st, day, 'keeper', 'The keeper ' + ACT[k.kind] + (k.x != null ? ' over ' + here : '') + '.');
+  }
+
+  function env(st, t) {
+    var season = sn(TAU * t / (TPD * YEAR));
+    var temp = 0.5 * season + 0.1 * sn(TAU * t / TPD) + st.events.tempOff + (t < st.keeper.tempUntil ? st.keeper.tempOff : 0);
+    var tide = 0.6 * sn(TAU * t / 7.3) + 0.4 * sn(TAU * t / 23.7);
+    var light = 0.55 + 0.45 * sn(TAU * t / 3);
+    var orbit = (t % 41) / 41;
+    var eclipse = orbit < 0.05;
+    if (eclipse) light *= 0.15;
+    var yearPhase = (t % (TPD * YEAR)) / (TPD * YEAR);
+    return { temp: temp, tide: tide, light: light, eclipse: eclipse, expo: 0.15 - 0.15 * tide,
+      season: SEASONS[Math.floor(yearPhase * 4)], seasonVal: season };
+  }
+
+  function daily(st) {
+    var day = st.t / TPD, r = st.r;
+    var e = env(st, st.t);
+    if (st.events.heat > 0) { st.events.heat--; if (!st.events.heat) st.events.tempOff = 0; }
+    if (st.events.cold > 0) { st.events.cold--; if (!st.events.cold) st.events.tempOff = 0; }
+    var x = r();
+    if (st.t >= st.keeper.calmUntil && x < 0.035) {
+      st.events.storm = 2;
+      for (var i = 0; i < N; i++) st.nut[i] = Math.min(1.5, st.nut[i] + 0.3);
+      note(st, day, 'weather', 'A storm tore across the reef. The shallows took a beating.');
+    } else if (x < 0.05 && e.seasonVal > 0.3 && !st.events.heat) {
+      st.events.heat = 6; st.events.tempOff = 0.45;
+      note(st, day, 'weather', 'A heatwave settled over the reef.');
+    } else if (x < 0.065 && e.seasonVal < -0.3 && !st.events.cold) {
+      st.events.cold = 6; st.events.tempOff = -0.45;
+      note(st, day, 'weather', 'A cold snap gripped the water.');
+    } else if (x < 0.085) {
+      var cx = Math.floor(r() * W), cy = Math.floor(r() * H);
+      for (var j = 0; j < N; j++) { var dx = j % W - cx, dy = Math.floor(j / W) - cy; if (dx * dx + dy * dy <= 14) st.nut[j] = Math.min(1.5, st.nut[j] + 0.6); }
+      note(st, day, 'weather', 'Upwelling brought a rush of nutrients to ' + where(cy * W + cx) + '.');
+    }
+    // speciation
+    for (var s = 0; s < MAXS; s++) {
+      var p = st.sp[s];
+      if (!p || !p.alive || p.total < [3, 0.6, 0.15][p.lvl]) continue;
+      if (r() > 0.025) continue;
+      var slot = -1;
+      for (var q = 0; q < MAXS; q++) if (!st.sp[q] || !st.sp[q].alive) { slot = q; break; }
+      if (slot < 0) break;
+      var lvl = p.lvl;
+      if (r() < 0.06) lvl = clamp(lvl + (r() < 0.5 ? -1 : 1), 0, 2);
+      function m(v, a, b) { return clamp(v + (r() - 0.5) * 0.4, a, b); }
+      var atLvl = 0; for (var q2 = 0; q2 < MAXS; q2++) if (st.sp[q2] && st.sp[q2].alive && st.sp[q2].lvl === lvl) atLvl++;
+      if (atLvl >= [9, 7, 4][lvl]) continue;
+      var c = { id: slot, lvl: lvl, size: m(p.size, 0.05, 1), spread: m(p.spread, 0.05, 1), tOpt: m(p.tOpt, -1, 1), dOpt: m(p.dOpt, 0, 1), dryTol: m(p.dryTol, 0, 1),
+        born: day, parent: p.name, alive: true, total: 0, peak: 0, hue: 0, glyph: '', name: '' };
+      c.name = nameFor(st, lvl); c.glyph = glyphFor(st, lvl);
+      c.hue = lvl === p.lvl ? (p.hue + Math.floor((r() - 0.5) * 60) + 360) % 360 : hueFor(r, lvl);
+      var best = 0, bv = -1;
+      for (var i2 = 0; i2 < N; i2++) { var v = st.pop[s][i2] * (0.5 + r()); if (v > bv) { bv = v; best = i2; } }
+      var cp = st.pop[slot]; for (var i3 = 0; i3 < N; i3++) cp[i3] = 0;
+      cp[best] = st.pop[s][best] * 0.4; st.pop[s][best] *= 0.6;
+      st.sp[slot] = c;
+      note(st, day, lvl !== p.lvl ? 'milestone' : 'split', c.name + ' split from ' + p.name + ' in ' + where(best) + '. It ' + describeSplit(p, c) + '.');
+      var alive = 0; for (var a = 0; a < MAXS; a++) if (st.sp[a] && st.sp[a].alive) alive++;
+      if (alive > st.record) { st.record = alive; if (alive % 2 === 0) note(st, day, 'milestone', 'The reef now holds ' + alive + ' kinds of life, more than ever before.'); }
+    }
+    // weekly census
+    if (day > 0 && day % 7 === 0) {
+      var top = -1, tv = 0;
+      for (var s2 = 0; s2 < MAXS; s2++) { var sp = st.sp[s2]; if (sp && sp.alive && sp.total > tv) { tv = sp.total; top = s2; } }
+      if (top >= 0 && st.lastTop >= 0 && top !== st.lastTop && st.sp[st.lastTop]) note(st, day, 'shift', st.sp[top].name + ' overtook ' + st.sp[st.lastTop].name + ' as the most abundant life on the reef.');
+      st.lastTop = top;
+      for (var s3 = 0; s3 < MAXS; s3++) {
+        var sp3 = st.sp[s3];
+        if (sp3 && sp3.alive && st.lastWeek[s3] && st.lastWeek[s3].name === sp3.name && st.lastWeek[s3].total > 0.8 && sp3.total < st.lastWeek[s3].total * 0.3)
+          note(st, day, 'crash', sp3.name + ' crashed to under a third of last week’s numbers.');
+        st.lastWeek[s3] = sp3 ? { name: sp3.name, total: sp3.total } : null;
+      }
+    }
+  }
+
+  var buf = new Float64Array(N);
+  function step(st, keeperLog) {
+    var t = st.t, day = t / TPD;
+    for (var k = 0; k < keeperLog.length; k++) if (keeperLog[k].day * TPD === t) {
+      var acts = keeperLog[k].actions || [keeperLog[k]];
+      for (var ka = 0; ka < acts.length && ka < 2; ka++) applyKeeper(st, acts[ka], keeperLog[k].day);
+    }
+    if (t % TPD === 0) daily(st);
+    var e = env(st, t);
+    var depth = st.depth, sp = st.sp, pop = st.pop;
+    var storm = st.events.storm > 0; if (storm) st.events.storm--;
+    var shade = st.keeper.shade && t < st.keeper.shade.until ? st.keeper.shade : null;
+    var lv = [[], [], []];
+    for (var s = 0; s < MAXS; s++) if (sp[s] && sp[s].alive) lv[sp[s].lvl].push(s);
+    for (var i = 0; i < N; i++) {
+      var d = depth[i], exposed = d < e.expo;
+      var L = e.light * (1 - 0.75 * d);
+      if (shade) { var dx = i % W - shade.x, dy = Math.floor(i / W) - shade.y; if (dx * dx + dy * dy <= 10) L *= 0.35; }
+      var nut = st.nut[i];
+      // growers
+      var prodSum = 0;
+      for (var a = 0; a < lv[0].length; a++) prodSum += pop[lv[0][a]][i];
+      for (var a2 = 0; a2 < lv[0].length; a2++) {
+        var s0 = lv[0][a2], q = sp[s0], p = pop[s0][i];
+        if (p <= 0) continue;
+        var ft = fit(e.temp, q.tOpt, 0.6), fd = fit(d, q.dOpt, 4);
+        var g = (0.5 - 0.25 * q.size) * L * nut * ft * fd * 1.6;
+        var mort = 0.025 + (exposed ? (1 - q.dryTol) * 0.3 : 0) + 0.03 * (1 - ft) + (storm && d < 0.35 ? 0.15 : 0);
+        var grow = p * g * (1 - prodSum / (0.8 + 0.6 * q.size));
+        pop[s0][i] = p + grow - p * mort;
+        if (grow > 0) nut -= grow * 0.12;
+      }
+      st.nut[i] = clamp(nut + 0.015 * (0.6 + 0.5 * d - nut), 0, 1.5);
+      // grazers then hunters
+      for (var lvl = 1; lvl <= 2; lvl++) {
+        var prey = lv[lvl - 1];
+        for (var b = 0; b < lv[lvl].length; b++) {
+          var s1 = lv[lvl][b], h = sp[s1], ph = pop[s1][i];
+          if (ph <= 0) continue;
+          var food = 0;
+          for (var c = 0; c < prey.length; c++) { var pq = sp[prey[c]]; if (pq.size <= h.size + 0.35) food += pop[prey[c]][i]; }
+          var ft2 = fit(e.temp, h.tOpt, 0.6), fd2 = fit(d, h.dOpt, 3);
+          var half = lvl === 1 ? 0.3 : 0.08;
+          var intake = (lvl === 1 ? 0.55 : 0.6) * food / (food + half) * (0.3 + 0.7 * ft2 * fd2);
+          var eat = intake * ph;
+          if (food > 0) for (var c2 = 0; c2 < prey.length; c2++) {
+            var pq2 = sp[prey[c2]]; if (pq2.size > h.size + 0.35) continue;
+            var share = pop[prey[c2]][i] / food;
+            pop[prey[c2]][i] = Math.max(0, pop[prey[c2]][i] - eat * share * (lvl === 1 ? 0.9 : 1.1));
+          }
+          var mort2 = (lvl === 1 ? 0.06 : 0.04) - 0.02 * h.size + (exposed ? (1 - h.dryTol) * 0.3 : 0) + 0.04 * (1 - ft2) + (storm && d < 0.35 ? 0.12 : 0) + 0.15 * ph;
+          pop[s1][i] = ph + eat * (lvl === 1 ? 0.6 : 0.5) - ph * mort2;
+        }
+      }
+    }
+    // dispersal and tidy
+    for (var s4 = 0; s4 < MAXS; s4++) {
+      var q4 = sp[s4]; if (!q4 || !q4.alive) continue;
+      var P = pop[s4], rate = q4.spread * 0.12 + (storm ? 0.05 : 0);
+      for (var i4 = 0; i4 < N; i4++) buf[i4] = P[i4];
+      for (var i5 = 0; i5 < N; i5++) {
+        var v = P[i5]; if (v <= 0) continue;
+        var x = i5 % W, y = Math.floor(i5 / W), nb = [];
+        if (x > 0) nb.push(i5 - 1); if (x < W - 1) nb.push(i5 + 1); if (y > 0) nb.push(i5 - W); if (y < H - 1) nb.push(i5 + W);
+        var out = v * rate; buf[i5] -= out;
+        for (var n = 0; n < nb.length; n++) buf[nb[n]] += out / nb.length;
+      }
+      var tot = 0;
+      for (var i6 = 0; i6 < N; i6++) { var w = buf[i6]; if (w < 2e-4) w = 0; P[i6] = w; tot += w; }
+      q4.total = tot; if (tot > q4.peak) q4.peak = tot;
+      if (tot < 0.003) {
+        q4.alive = false; q4.died = day;
+        note(st, day, 'extinct', q4.name + ' died out after ' + Math.max(1, Math.round(day - q4.born)) + ' days' + (q4.parent === 'the keeper' ? ', one of the keeper\u2019s own introductions' : q4.parent ? ', a lineage from ' + q4.parent : ', the last of the founders’ line') + '.');
+        if (q4.parent === null) {
+          var foundersLeft = 0; for (var f = 0; f < MAXS; f++) if (sp[f] && sp[f].alive && sp[f].parent === null) foundersLeft++;
+          if (!foundersLeft) note(st, day, 'milestone', 'None of the original six species remain.');
+        }
+      }
+    }
+    var any = false; for (var s5 = 0; s5 < MAXS; s5++) if (sp[s5] && sp[s5].alive) any = true;
+    if (!any && !st.dead) { st.dead = true; note(st, day, 'milestone', 'The reef fell silent. Nothing lives here now.'); }
+    st.t = t + 1;
+  }
+
+  function tickNow(ms) { return Math.max(0, Math.floor((ms - EPOCH) / TICKMS)); }
+
+  function run(tick, keeperLog, watch) {
+    var st = init();
+    keeperLog = keeperLog || [];
+    note(st, 0, 'milestone', 'The reef began with six species: three growers, two grazers and one hunter.');
+    // watch(st) only looks; it never changes the reef
+    if (watch) watch(st);
+    while (st.t < tick) { step(st, keeperLog); if (watch) watch(st); }
+    var e = env(st, st.t);
+    var dom = new Int16Array(N), dens = new Float64Array(N);
+    for (var i = 0; i < N; i++) {
+      var best = -1, bv = 0, sum = 0;
+      for (var s = 0; s < MAXS; s++) { var q = st.sp[s]; if (!q || !q.alive) continue; var v = st.pop[s][i] * (1 + q.lvl * 0.8); sum += st.pop[s][i]; if (v > bv) { bv = v; best = s; } }
+      dom[i] = best; dens[i] = sum;
+    }
+    var counts = [0, 0, 0];
+    st.sp.forEach(function (q) { if (q && q.alive) counts[q.lvl]++; });
+    return { tick: st.t, day: Math.floor(st.t / TPD), quarter: st.t % TPD, env: e, depth: st.depth, dom: dom, dens: dens,
+      species: st.sp.filter(function (q) { return q; }), log: st.log, counts: counts, W: W, H: H, nut: st.nut, dead: !!st.dead };
+  }
+
+  function tideAt(t) { return 0.6 * sn(TAU * t / 7.3) + 0.4 * sn(TAU * t / 23.7); }
+  return { run: run, tickNow: tickNow, tideAt: tideAt, EPOCH: EPOCH, TICKMS: TICKMS, TPD: TPD, W: W, H: H, LEVEL: LEVEL, YEAR: YEAR };
+})();
+if (typeof module !== 'undefined') module.exports = Reef;
+
+</script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var LV = ['Growers', 'Grazers', 'Hunters'];
+  var WATCH = ['first', 'second', 'third', 'fourth'];
+  var showAll = false, viewTick = null, last = null;
+
+  function color(h) { return 'hsl(' + h + ' var(--glyphS) var(--glyphL))'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fmtDay(d) { return 'Day ' + Math.floor(d); }
+
+  function traits(q) {
+    var t = [];
+    t.push(q.tOpt > 0.25 ? 'likes warm water' : q.tOpt < -0.25 ? 'likes cold water' : 'mild water');
+    t.push(q.dOpt < 0.33 ? 'shallows' : q.dOpt > 0.66 ? 'deep water' : 'mid-reef');
+    if (q.dryTol > 0.55) t.push('survives low tide');
+    t.push(q.size > 0.6 ? 'large' : q.size < 0.3 ? 'small' : 'medium');
+    if (q.spread > 0.6) t.push('wanders');
+    return t.join(' · ');
+  }
+
+
+  var ROLE = ['var(--grow)', 'var(--graze)', 'var(--hunt)'];
+  var ROLEWORD = ['grower', 'grazer', 'hunter'];
+  var tallMQ = window.matchMedia('(max-width: 640px)');
+  var sel = -1;
+  function waterOf(s, i) { var d = s.depth[i]; return d < s.env.expo ? 'flat' : d < 0.33 ? 'b1' : d < 0.66 ? 'b2' : 'b3'; }
+  var WATERWORD = { flat: 'tidal flat, out of the water', b1: 'shallows', b2: 'reef water', b3: 'deep water' };
+  function amount(dn) { return dn > 0.45 ? 'thick with life' : dn > 0.15 ? 'busy' : dn > 0.06 ? 'scattered' : dn > 0.01 ? 'a few' : 'empty'; }
+  function aliveById(s, k) { for (var j = 0; j < s.species.length; j++) if (s.species[j].id === k && s.species[j].alive) return s.species[j]; return null; }
+  // ---------- picture of the reef ----------
+  var C = {}, anim = 0, lastFrame = 0;
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function readColors() {
+    var cs = getComputedStyle(document.documentElement);
+    ['b1', 'b2', 'b3', 'flat', 'beach', 'grow', 'graze', 'hunt', 'mark', 'fg', 'bg', 'cgrow', 'cgraze', 'chunt', 'muted', 'line', 'panel', 'accent'].forEach(function (k) { C[k] = hex(cs.getPropertyValue('--' + k).trim()); });
+    C.dark = (C.bg[0] + C.bg[1] + C.bg[2]) < 300;
+  }
+  function hex(h) { h = h.replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&'); var n = parseInt(h || '000000', 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  function mix(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+  function rgb(c, al) { return 'rgba(' + Math.round(c[0]) + ',' + Math.round(c[1]) + ',' + Math.round(c[2]) + ',' + (al == null ? 1 : al) + ')'; }
+  function shade(c, t) { return mix(c, C.dark ? [255, 255, 255] : [0, 0, 0], t); }
+  function hash(n) { n = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b); n ^= n >>> 13; n = Math.imul(n, 0xc2b2ae35); n ^= n >>> 16; return (n >>> 0) / 4294967296; }
+  function waterCol(d) { return d < 0.5 ? mix(C.b1, C.b2, d / 0.5) : mix(C.b2, C.b3, Math.min(1, (d - 0.5) / 0.45)); }
+  function shapeOf(q) {
+    var n = q.name.split(' ')[1] || '';
+    if (q.lvl === 0) return /Mat|Film|Bloom/.test(n) ? 'mat' : /Veil|Fan|Lace/.test(n) ? 'fan' : 'strand';
+    if (q.lvl === 1) return /Drifter|Comb/.test(n) ? 'jelly' : /Shrimp|Tick/.test(n) ? 'shrimp' : 'snail';
+    return 'eel';
+  }
+  function hstr(str) { var h = 2166136261; for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) / 4294967296; }
+  function hsl(hh, ss, ll) { hh = ((hh % 360) + 360) % 360 / 360; function f(n) { var k = (n + hh * 12) % 12, a = ss * Math.min(ll, 1 - ll); return 255 * (ll - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))); } return [f(0), f(8), f(4)]; }
+  // each species gets its own shade from its name and hue, so relatives look related but not identical
+  function speciesTint(q) {
+    var base = C[['grow', 'graze', 'hunt'][q.lvl]], v = hstr(q.name);
+    if (q.lvl === 0) base = mix(base, hsl(q.hue, 0.6, C.dark ? 0.6 : 0.36), 0.45);
+    var t = (v - 0.5) * 0.5;
+    return t >= 0 ? mix(base, C.dark ? [255, 255, 255] : [0, 0, 0], t * 0.8) : mix(base, C.dark ? [0, 0, 0] : [255, 255, 255], -t * 0.8);
+  }
+  function sizeK(q) { return Math.min(1.12, 0.82 + q.size * 0.45); }
+
+  function drawCreature(g, kind, x, y, s, col, t, seed, q) {
+    var dk = shade(col, 0.35);
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    if (kind === 'strand') {
+      var ns = q ? 2 + Math.round(q.spread * 3) : 3;
+      for (var k = 0; k < ns; k++) {
+        var a0 = -Math.PI / 2 + (k - (ns - 1) / 2) * (1.1 / Math.max(1, ns - 1)) + (hash(seed + k) - 0.5) * 0.4, sw = Math.sin(t / 900 + seed + k) * 0.35;
+        var L = s * (0.42 + hash(seed * 3 + k) * 0.18);
+        var x1 = x + Math.cos(a0) * L * 0.5 + sw * s * 0.15, y1 = y + Math.sin(a0) * L * 0.5;
+        var x2 = x + Math.cos(a0 + sw * 0.6) * L, y2 = y + Math.sin(a0 + sw * 0.6) * L;
+        g.strokeStyle = rgb(k % 2 ? col : shade(col, 0.15)); g.lineWidth = Math.max(1.6, s * (q && q.size > 0.55 ? 0.13 : 0.1));
+        g.beginPath(); g.moveTo(x, y + s * 0.18); g.quadraticCurveTo(x1, y1, x2, y2); g.stroke();
+      }
+      g.fillStyle = rgb(dk); g.beginPath(); g.arc(x, y + s * 0.18, s * 0.07, 0, 7); g.fill();
+    } else if (kind === 'mat') {
+      for (var m = 0; m < 5; m++) {
+        var ax = x + (hash(seed + m * 5) - 0.5) * s * 0.5, ay = y + (hash(seed + m * 5 + 1) - 0.5) * s * 0.42, r = s * (0.11 + hash(seed + m * 5 + 2) * 0.09);
+        g.fillStyle = rgb(m % 2 ? col : shade(col, 0.12)); g.beginPath(); g.arc(ax, ay, r * (1 + Math.sin(t / 1400 + m + seed) * 0.05), 0, 7); g.fill();
+      }
+    } else if (kind === 'fan') {
+      var sway = Math.sin(t / 1100 + seed) * 0.12, R = s * 0.42, b0 = y + s * 0.2;
+      g.fillStyle = rgb(col, 0.85); g.beginPath(); g.moveTo(x, b0); g.arc(x, b0, R, -Math.PI * 0.82 + sway, -Math.PI * 0.18 + sway); g.closePath(); g.fill();
+      g.strokeStyle = rgb(dk, 0.7); g.lineWidth = Math.max(1, s * 0.04);
+      var nr = q ? 3 + Math.round(q.spread * 3) : 4;
+      for (var f = 0; f < nr; f++) { var fa = -Math.PI * 0.75 + sway + f * Math.PI * 0.5 / (nr - 1); g.beginPath(); g.moveTo(x, b0); g.lineTo(x + Math.cos(fa) * R * 0.95, b0 + Math.sin(fa) * R * 0.95); g.stroke(); }
+    } else if (kind === 'snail') {
+      var wx = x + Math.sin(t / 2600 + seed) * s * 0.08, r2 = s * 0.2;
+      g.fillStyle = rgb(shade(col, 0.25)); g.beginPath(); g.ellipse(wx + r2 * 0.55, y + r2 * 0.55, r2 * 0.9, r2 * 0.38, 0, 0, 7); g.fill();
+      g.strokeStyle = rgb(shade(col, 0.25)); g.lineWidth = Math.max(1, s * 0.035);
+      g.beginPath(); g.moveTo(wx + r2 * 1.2, y + r2 * 0.4); g.lineTo(wx + r2 * 1.6, y - r2 * 0.1); g.moveTo(wx + r2 * 1.1, y + r2 * 0.35); g.lineTo(wx + r2 * 1.35, y - r2 * 0.25); g.stroke();
+      g.fillStyle = rgb(col); g.beginPath(); g.arc(wx, y, r2, 0, 7); g.fill();
+      g.strokeStyle = rgb(dk); g.lineWidth = Math.max(1, s * 0.045); g.beginPath();
+      for (var p = 0; p <= 22; p++) { var th = p * 0.5, rr = r2 * 0.85 * (p / 22); var px = wx + Math.cos(th) * rr, py = y + Math.sin(th) * rr; if (!p) g.moveTo(px, py); else g.lineTo(px, py); }
+      g.stroke();
+    } else if (kind === 'jelly') {
+      var by = y + Math.sin(t / 1300 + seed) * s * 0.07, r3 = s * 0.2;
+      g.strokeStyle = rgb(col, 0.8); g.lineWidth = Math.max(1, s * 0.04);
+      for (var q2 = 0; q2 < 4; q2++) { var tx = x - r3 * 0.7 + q2 * r3 * 0.47; g.beginPath(); g.moveTo(tx, by); g.quadraticCurveTo(tx + Math.sin(t / 500 + q2 + seed) * r3 * 0.5, by + r3 * 1.1, tx, by + r3 * 1.9); g.stroke(); }
+      g.fillStyle = rgb(col, 0.9); g.beginPath(); g.arc(x, by, r3, Math.PI, 0); g.closePath(); g.fill();
+    } else if (kind === 'shrimp') {
+      var sx2 = x + Math.sin(t / 1700 + seed) * s * 0.1;
+      g.strokeStyle = rgb(col); g.lineWidth = Math.max(2, s * 0.13); g.beginPath(); g.arc(sx2, y, s * 0.17, Math.PI * 0.1, Math.PI * 1.15); g.stroke();
+      g.strokeStyle = rgb(dk); g.lineWidth = Math.max(1, s * 0.03); g.beginPath(); g.moveTo(sx2 + s * 0.15, y + s * 0.07); g.lineTo(sx2 + s * 0.38, y - s * 0.12); g.stroke();
+    } else if (kind === 'eel') {
+      var L2 = s * 0.95, n2 = 14, ph = t / 450 + seed, ang = hash(seed + 99) * Math.PI * 2 + Math.sin(t / 4000 + seed) * 0.6, ca = Math.cos(ang), sa = Math.sin(ang), pts = [];
+      for (var e2 = 0; e2 <= n2; e2++) { var u = e2 / n2 - 0.5, off = Math.sin(ph + e2 * 0.7) * s * 0.11 * (0.4 + e2 / n2); pts.push([x + ca * u * L2 - sa * off, y + sa * u * L2 + ca * off]); }
+      g.strokeStyle = rgb(dk); g.lineWidth = Math.max(3, s * 0.2); g.beginPath(); pts.forEach(function (pp, k2) { k2 ? g.lineTo(pp[0], pp[1]) : g.moveTo(pp[0], pp[1]); }); g.stroke();
+      g.strokeStyle = rgb(col); g.lineWidth = Math.max(2, s * 0.14); g.stroke();
+      var hd = pts[n2]; g.fillStyle = rgb(col); g.beginPath(); g.arc(hd[0], hd[1], s * 0.12, 0, 7); g.fill();
+      g.fillStyle = rgb(C.dark ? [10, 17, 29] : [255, 255, 255]); g.beginPath(); g.arc(hd[0] + ca * s * 0.04, hd[1] + sa * s * 0.04, s * 0.045, 0, 7); g.fill();
+    }
+  }
+
+  var hl = null; // name of the species being found on the map
+  function mixAt(i) {
+    var st = H && H.st, out = [], tot = 0; if (!st) return { list: out, tot: 0 };
+    for (var j = 0; j < st.sp.length; j++) { var q = st.sp[j]; if (!q || !q.alive) continue; var v = st.pop[j][i]; if (v > 0.0005) { out.push({ q: q, v: v }); tot += v; } }
+    out.sort(function (a, b) { return b.v - a.v; });
+    return { list: out, tot: tot };
+  }
+  var second = [];
+  function findSecond(s) {
+    second = [];
+    for (var i = 0; i < s.dom.length; i++) {
+      var m = mixAt(i), d = s.dom[i], pick = null;
+      m.list.forEach(function (o) { if (!pick && o.q.id !== d && o.q.lvl !== 2 && o.v / m.tot >= 0.2) pick = o.q; });
+      second.push(pick);
+    }
+  }
+  var geo = null;
+  function layout(s) {
+    var tall = tallMQ.matches, cv = $('map'), cssW = cv.parentNode.clientWidth || 340;
+    var cols = tall ? s.H : s.W, rows = tall ? s.W : s.H, shore = tall ? 18 : 18;
+    var cw = (cssW - (tall ? shore : 0)) / cols, ch = tall ? cw * 0.78 : cw;
+    var cssH = rows * ch + (tall ? 0 : shore);
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr); cv.style.height = cssH + 'px';
+    geo = { tall: tall, cols: cols, rows: rows, cw: cw, ch: ch, ox: tall ? shore : 0, oy: tall ? 0 : shore, dpr: dpr, w: cssW, h: cssH, shore: shore };
+    $('axL').textContent = tall ? '← Shore' : '↑ Shore';
+    $('axR').textContent = tall ? 'Open deep →' : '↓ Open deep';
+  }
+  function cellXY(i, s) { var x = i % s.W, y = Math.floor(i / s.W); var c = geo.tall ? y : x, r = geo.tall ? x : y; return [geo.ox + c * geo.cw, geo.oy + r * geo.ch]; }
+  var bed = null;
+  function paintBed(s) {
+    // smooth seabed: a tiny image of depth, scaled up with smoothing
+    var cols = geo.cols, rows = geo.rows, off = document.createElement('canvas'); off.width = cols; off.height = rows;
+    var og = off.getContext('2d'), img = og.createImageData(cols, rows);
+    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+      var x = geo.tall ? r : c, y = geo.tall ? c : r, i = y * s.W + x, d = s.depth[i];
+      var col = d < s.env.expo ? C.flat : waterCol(d), o = (r * cols + c) * 4;
+      img.data[o] = col[0]; img.data[o + 1] = col[1]; img.data[o + 2] = col[2]; img.data[o + 3] = 255;
+    }
+    og.putImageData(img, 0, 0); bed = off;
+  }
+  function frame(t) {
+    var s = last; if (!s || !geo) return;
+    var g = $('map').getContext('2d'); g.setTransform(geo.dpr, 0, 0, geo.dpr, 0, 0);
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    g.drawImage(bed, geo.ox, geo.oy, geo.cols * geo.cw, geo.rows * geo.ch);
+    // beach
+    g.fillStyle = rgb(C.beach);
+    if (geo.tall) g.fillRect(0, 0, geo.shore, geo.h); else g.fillRect(0, 0, geo.w, geo.shore);
+    g.fillStyle = rgb(shade(C.beach, 0.12));
+    for (var k = 0; k < 40; k++) { var a = hash(k * 31), b = hash(k * 31 + 7); if (geo.tall) g.fillRect(a * geo.shore, b * geo.h, 1.5, 1.5); else g.fillRect(b * geo.w, a * geo.shore, 1.5, 1.5); }
+    // light ripples
+    if (!s.env.eclipse) {
+      g.strokeStyle = rgb([255, 255, 255], C.dark ? 0.05 : 0.18); g.lineWidth = 1.2;
+      for (var w = 0; w < 9; w++) {
+        g.beginPath();
+        for (var p = 0; p <= 30; p++) {
+          var u = p / 30, v = (w + 0.5) / 9;
+          var px = geo.ox + (geo.tall ? v * (geo.w - geo.ox) : u * geo.w), py = geo.oy + (geo.tall ? u * geo.h : v * (geo.h - geo.oy));
+          var o = Math.sin(u * 12 + t / 1800 + w) * 4;
+          if (geo.tall) px += o; else py += o;
+          p ? g.lineTo(px, py) : g.moveTo(px, py);
+        }
+        g.stroke();
+      }
+    }
+    // creatures: growers first, then grazers, then hunters on top
+    var unit = Math.min(geo.cw, geo.ch) * 1.05;
+    for (var lvl = 0; lvl < 3; lvl++) for (var i = 0; i < s.dom.length; i++) {
+      var q = s.dom[i] >= 0 ? aliveById(s, s.dom[i]) : null; if (!q || q.lvl !== lvl) continue;
+      var dn = s.dens[i], n = lvl === 2 ? 1 : dn > 0.45 ? 3 : dn > 0.15 ? 2 : dn > 0.01 ? 1 : 0;
+      if (!n) continue;
+      var sc = lvl === 2 ? 1.25 : dn > 0.06 ? 1 : 0.7, xy = cellXY(i, s), kind = shapeOf(q), col = speciesTint(q);
+      for (var m = 0; m < n; m++) {
+        var sd = i * 7 + m * 101, jx = n === 1 ? 0.5 : 0.22 + hash(sd) * 0.56, jy = n === 1 ? 0.5 : 0.25 + hash(sd + 1) * 0.5;
+        drawCreature(g, kind, xy[0] + geo.cw * jx, xy[1] + geo.ch * jy, unit * sc * (n > 1 ? 0.78 : 1) * sizeK(q), col, still.matches ? 0 : t, sd % 97, q);
+      }
+    }
+    // a smaller second creature where another species holds a fifth or more of the patch
+    for (var i3 = 0; i3 < second.length; i3++) {
+      var q3 = second[i3]; if (!q3) continue;
+      var xy3 = cellXY(i3, s);
+      drawCreature(g, shapeOf(q3), xy3[0] + geo.cw * 0.78, xy3[1] + geo.ch * 0.76, unit * 0.55 * sizeK(q3), speciesTint(q3), still.matches ? 0 : t, i3 % 97, q3);
+    }
+    if (s.env.eclipse) { g.fillStyle = 'rgba(5,10,25,0.38)'; g.fillRect(0, 0, geo.w, geo.h); }
+    if (hl && H && H.st) {
+      var j3 = -1; H.st.sp.forEach(function (q, j) { if (q && q.alive && q.name === hl) j3 = j; });
+      g.fillStyle = rgb(C.bg, 0.55);
+      for (var i4 = 0; i4 < s.dom.length; i4++) {
+        var xy4 = cellXY(i4, s), here = j3 >= 0 && H.st.pop[j3][i4] > 0.0005;
+        if (!here) g.fillRect(xy4[0], xy4[1], geo.cw, geo.ch);
+      }
+      g.strokeStyle = rgb(C.fg); g.lineWidth = 1.5;
+      for (var i5 = 0; i5 < s.dom.length; i5++) if (j3 >= 0 && H.st.pop[j3][i5] > 0.0005) { var xy5 = cellXY(i5, s); g.strokeRect(xy5[0] + 1, xy5[1] + 1, geo.cw - 2, geo.ch - 2); }
+    }
+    if (sel >= 0) {
+      var sx = cellXY(sel, s); g.strokeStyle = rgb(C.fg); g.lineWidth = 2;
+      g.setLineDash([4, 3]); g.strokeRect(sx[0] + 1, sx[1] + 1, geo.cw - 2, geo.ch - 2); g.setLineDash([]);
+    }
+  }
+  function loop(t) {
+    anim = 0;
+    if (document.hidden) return;
+    if (t - lastFrame > 45) { lastFrame = t; frame(t); }
+    if (!still.matches) anim = requestAnimationFrame(loop);
+  }
+  function kick() { if (!anim) anim = requestAnimationFrame(loop); }
+  document.addEventListener('visibilitychange', kick);
+
+  function drawMap(s) {
+    readColors(); layout(s); paintBed(s); findSecond(s); frame(performance.now()); kick();
+    var alive = s.species.filter(function (z) { return z.alive; }).sort(function (a, b) { return a.lvl - b.lvl || b.total - a.total; });
+    var ROLEDESC = ['grower · makes food from light', 'grazer · eats growers', 'hunter · eats grazers'];
+    $('legend').innerHTML =
+      '<div class="depthkey"><span>Shallow</span><span class="ramp"></span><span>Deep</span><span class="sand"></span><span>Flats at low tide</span></div>' +
+      '<span class="legnote">Seen from above. More creatures in a patch means more life there.' + (s.env.eclipse ? ' The picture is dim because the gas giant is in eclipse.' : '') + '</span>';
+    var held = [0, 0, 0], bySp = {};
+    for (var j = 0; j < s.dom.length; j++) { var qq = s.dom[j] >= 0 ? aliveById(s, s.dom[j]) : null; if (!qq) continue; held[qq.lvl]++; bySp[qq.id] = (bySp[qq.id] || 0) + 1; }
+    function lead(l) { var best = null, n = 0; s.species.forEach(function (z) { if (z.alive && z.lvl === l && (bySp[z.id] || 0) > n) { n = bySp[z.id]; best = z; } }); return best; }
+    var parts = [], ROLEP = ['Growers', 'Grazers', 'Hunters'];
+    for (var l = 0; l < 3; l++) {
+      var lz = lead(l), k = '<i class="k" style="background:' + ROLE[l] + '"></i>';
+      if (!held[l]) { parts.push(k + 'No patch belongs to a ' + ROLEWORD[l] + ' right now.'); continue; }
+      parts.push(k + '<b>' + ROLEP[l] + '</b> hold ' + held[l] + (held[l] === 1 ? ' patch' : ' patches') + (lz ? (bySp[lz.id] === held[l] ? ', all ' : ', mostly ') + '<b>' + esc(lz.name) + '</b>' : '') + '.');
+    }
+    var sky = s.env.eclipse ? 'The gas giant is in eclipse, so the growers have almost no light.' : s.env.expo > 0.18 ? 'The tide is out and the shallowest patches are drying.' : '';
+    $('nowline').innerHTML = '<b>Right now, out of ' + s.dom.length + ' patches:</b><br>' + parts.join('<br>') + (sky ? '<br><span style="color:var(--muted)">' + sky + '</span>' : '');
+    showCell(s);
+  }
+  function share(p) { return p >= 0.995 ? '100%' : p < 0.01 ? '<1%' : Math.round(p * 100) + '%'; }
+  function showCell(s) {
+    var box = $('cellinfo');
+    if (sel < 0) {
+      box.innerHTML = hl ? findWords(s) : '<span class="hint">Tap a patch to see everything living there. Tap a species below to find it on the map.</span>';
+      return;
+    }
+    var x = sel % s.W, y = Math.floor(sel / s.W), d = s.depth[sel], m = mixAt(sel);
+    var light = Math.round((1 - 0.75 * d) * 100), nut = s.nut[sel];
+    var facts = '<div class="cellfacts"><span>' + (d < s.env.expo ? 'Out of the water right now' : WATERWORD[waterOf(s, sel)].replace(/^./, function (c) { return c.toUpperCase(); })) + '</span>' +
+      '<span>Light reaching the bottom ' + light + '%</span>' +
+      '<span>Food in the water ' + (nut > 0.8 ? 'rich' : nut > 0.5 ? 'normal' : nut > 0.3 ? 'thin' : 'poor') + '</span>' +
+      (d < 0.3 ? '<span>Uncovered at low tide</span>' : '') + '</div>';
+    var head = '<div class="cellhead"><b>Patch ' + x + ', ' + y + '</b><small>' + (m.list.length ? m.list.length + (m.list.length === 1 ? ' kind' : ' kinds') + ' here, ' + amount(s.dens[sel]) : 'nothing living here') + '</small></div>';
+    var rows = m.list.map(function (o) {
+      var p = o.v / m.tot;
+      return '<div class="mixrow"><canvas data-mix="' + o.q.id + '" aria-hidden="true"></canvas><span class="nm"><b>' + esc(o.q.name) + '</b> <small>' + ROLEWORD[o.q.lvl] + (o.q.id === s.dom[sel] ? ' · rules here' : '') + '</small></span><span class="pc">' + share(p) + '</span>' +
+        '<span class="mixbar" aria-hidden="true"><i style="width:' + Math.max(2, Math.round(p * 100)) + '%;background:' + rgb(speciesTint(o.q)) + '"></i></span></div>';
+    }).join('');
+    box.innerHTML = head + facts + rows + (m.list.length ? '<span class="findnote">Percentages are each kind’s share of all the life in this patch.</span>' : '');
+    [].forEach.call(box.querySelectorAll('canvas[data-mix]'), function (cv) { var z = aliveById(s, +cv.dataset.mix); if (z) icon(cv, z, 60); });
+  }
+  function findWords(s) {
+    var j3 = -1, n = 0, best = 0;
+    if (H && H.st) H.st.sp.forEach(function (q, j) { if (q && q.alive && q.name === hl) j3 = j; });
+    if (j3 >= 0) for (var i = 0; i < s.dom.length; i++) if (H.st.pop[j3][i] > 0.0005) { n++; if (s.dom[i] === H.st.sp[j3].id) best++; }
+    return '<div class="cellhead"><b>Finding ' + esc(hl) + '</b><small>tap its name again to stop</small></div><span class="hint">Lives in ' + n + (n === 1 ? ' patch' : ' patches') + (best ? ', and is the main species in ' + best + '.' : ', but isn\u2019t the main species anywhere yet.') + ' The outlined patches are where it lives. Tap one for the full list.</span>';
+  }
+  function setFind(name) {
+    hl = hl === name ? null : name; sel = -1;
+    [].forEach.call(document.querySelectorAll('.sp.pick'), function (r) { r.classList.toggle('on', r.dataset.name === hl); r.setAttribute('aria-pressed', r.dataset.name === hl ? 'true' : 'false'); });
+    if (last) { showCell(last); frame(performance.now()); }
+    if (hl) $('map').scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth', block: 'center' });
+  }
+  $('species').addEventListener('click', function (ev) { var r = ev.target.closest('.sp.pick'); if (r) setFind(r.dataset.name); });
+  $('species').addEventListener('keydown', function (ev) { var r = ev.target.closest('.sp.pick'); if (r && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); setFind(r.dataset.name); } });
+  $('map').addEventListener('click', function (ev) {
+    if (!last || !geo) return;
+    var rc = this.getBoundingClientRect(), px = ev.clientX - rc.left - geo.ox, py = ev.clientY - rc.top - geo.oy;
+    var c = Math.floor(px / geo.cw), r = Math.floor(py / geo.ch);
+    if (c < 0 || r < 0 || c >= geo.cols || r >= geo.rows) return;
+    var x = geo.tall ? r : c, y = geo.tall ? c : r, i = y * last.W + x;
+    sel = sel === i ? -1 : i; showCell(last); frame(performance.now());
+  });
+  var redraw = function () { if (last) { drawMap(last); if (H) { [].forEach.call(document.querySelectorAll('canvas[data-sp]'), function (cv) { var z = aliveById(last, +cv.dataset.sp); if (z && cv.closest('#species')) icon(cv, z, 80); }); drawExtras(last, H, viewTick === null); [].forEach.call($('species').querySelectorAll('canvas[data-spark]'), function (cv) { spark(cv, H.rec[cv.dataset.spark]); }); } } };
+  var rzT; window.addEventListener('resize', function () { clearTimeout(rzT); rzT = setTimeout(function () { if (last && geo && Math.abs($('map').parentNode.clientWidth - geo.w) > 2) drawMap(last); drawTrend(null); }, 150); });
+  var darkMQ = window.matchMedia('(prefers-color-scheme: dark)');
+  if (darkMQ.addEventListener) darkMQ.addEventListener('change', redraw);
+  new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (still.addEventListener) still.addEventListener('change', redraw);
+  if (tallMQ.addEventListener) tallMQ.addEventListener('change', redraw); else tallMQ.addListener(redraw);
+
+  function icon(cv, z, px) {
+    var g = cv.getContext('2d'); cv.width = px; cv.height = px;
+    g.fillStyle = rgb(waterCol(z.dOpt)); g.fillRect(0, 0, px, px);
+    drawCreature(g, shapeOf(z), px / 2, px * 0.53, (z.lvl === 2 ? 0.78 : 0.85) * px * sizeK(z), speciesTint(z), 0, 7, z);
+  }
+  function peakWords(q) {
+    if (!q.peak) return '';
+    var p = Math.round((1 - q.total / q.peak) * 100);
+    return p <= 2 ? 'At its highest so far.' : p + '% below its highest.';
+  }
+
+  // ---------- history (recorded while the reef replays; read-only) ----------
+  var H = null;
+  function collect() {
+    var Hh = { days: [], rec: {}, order: [] }, lastSt = null, TPD = Reef.TPD;
+    function addNew(st) {
+      for (var j = 0; j < st.sp.length; j++) {
+        var q = st.sp[j];
+        if (q && !Hh.rec[q.name]) {
+          var r = { name: q.name, obj: q, totals: [], patches: [] };
+          for (var k = 0; k < Hh.days.length; k++) { r.totals.push(null); r.patches.push(0); }
+          Hh.rec[q.name] = r; Hh.order.push(q.name);
+        }
+      }
+    }
+    function snap(st) {
+      Hh.days.push(st.t / TPD);
+      var N = st.depth.length, cnt = {}, tot = {};
+      for (var j = 0; j < st.sp.length; j++) { var q = st.sp[j]; if (!q || !q.alive) continue; var P = st.pop[j], sum = 0; for (var i = 0; i < N; i++) sum += P[i]; tot[q.name] = sum; }
+      for (var i2 = 0; i2 < N; i2++) {
+        var best = null, bv = 0;
+        for (var j2 = 0; j2 < st.sp.length; j2++) { var q2 = st.sp[j2]; if (!q2 || !q2.alive) continue; var v = st.pop[j2][i2] * (1 + q2.lvl * 0.8); if (v > bv) { bv = v; best = q2; } }
+        if (best) cnt[best.name] = (cnt[best.name] || 0) + 1;
+      }
+      Hh.order.forEach(function (nm) { var r = Hh.rec[nm]; r.totals.push(r.obj.alive && tot[nm] != null ? tot[nm] : null); r.patches.push(cnt[nm] || 0); });
+    }
+    return { H: Hh,
+      watch: function (st) { lastSt = st; addNew(st); if (st.t % TPD === 0) snap(st); },
+      finish: function () { if (lastSt && lastSt.t % TPD !== 0) snap(lastSt); Hh.st = lastSt; } };
+  }
+
+  function spark(cv, r) {
+    if (!r) return;
+    var dpr = Math.min(2, window.devicePixelRatio || 1), w = 90, h = 26;
+    cv.width = w * dpr; cv.height = h * dpr;
+    var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var vals = r.totals, max = 0, n = vals.length;
+    vals.forEach(function (v) { if (v != null && v > max) max = v; });
+    if (!max || n < 2) return;
+    var col = rgb(speciesTint(r.obj)), px = function (k) { return 2 + (w - 6) * k / (n - 1); }, py = function (v) { return h - 3 - (h - 6) * v / max; };
+    g.strokeStyle = rgb(C.line); g.lineWidth = 1; g.beginPath(); g.moveTo(0, h - 2.5); g.lineTo(w, h - 2.5); g.stroke();
+    g.strokeStyle = col; g.lineWidth = 2; g.lineJoin = 'round'; g.lineCap = 'round'; g.beginPath();
+    var on = false, lx = 0, ly = 0;
+    for (var k = 0; k < n; k++) { var v = vals[k]; if (v == null) { on = false; continue; } lx = px(k); ly = py(v); if (on) g.lineTo(lx, ly); else { g.moveTo(lx, ly); on = true; } }
+    g.stroke();
+    if (vals[n - 1] != null) { g.fillStyle = col; g.beginPath(); g.arc(lx, ly, 3, 0, 7); g.fill(); }
+  }
+
+  var ROLEP = ['Growers', 'Grazers', 'Hunters'], DASH = [[], [6, 4], [2, 3]];
+  var EVSYM = { 'new': '●', loss: '✕', weather: '▲', keeper: '■' };
+  function eventsOf(log) {
+    var out = [];
+    log.forEach(function (x) {
+      if (x.day === 0 && x.kind === 'milestone' && /began/.test(x.text)) return;
+      var cat = x.kind === 'weather' ? 'weather' : x.kind === 'keeper' ? 'keeper' : (x.kind === 'extinct' || x.kind === 'crash') ? 'loss' : /split from/.test(x.text) ? 'new' : null;
+      if (!cat) return;
+      var short = x.text.replace(/\. It .*$/, '').replace(/\.$/, '');
+      if (short.length > 46) short = short.slice(0, 44) + '…';
+      out.push({ day: x.day, cat: cat, short: short });
+    });
+    return out;
+  }
+  var trend = null;
+  function roleSeries(Hh) {
+    var out = [[], [], []];
+    for (var k = 0; k < Hh.days.length; k++) {
+      var t3 = [0, 0, 0];
+      Hh.order.forEach(function (nm) { var r = Hh.rec[nm], v = r.totals[k]; if (v) t3[r.obj.lvl] += v; });
+      for (var l = 0; l < 3; l++) out[l].push(t3[l]);
+    }
+    return out.map(function (arr) { var pk = 0; return arr.map(function (v) { if (v > pk) pk = v; return pk ? v / pk * 100 : 0; }); });
+  }
+  function drawTrend(hover) {
+    if (!trend) return;
+    var cv = $('trend'), Hh = trend.H, ser = trend.ser, n = Hh.days.length;
+    var w = cv.parentNode.clientWidth || 340, h = 214, dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(w * dpr); cv.height = h * dpr; cv.style.height = h + 'px';
+    var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var L = 38, R = 108, T = 12, B = 48, pw = w - L - R, ph = h - T - B, EY = T + ph + 13;
+    var d0 = Hh.days[0], d1 = Hh.days[n - 1] || 1;
+    var X = function (k) { return L + (n < 2 ? 0 : pw * (Hh.days[k] - d0) / (d1 - d0)); }, Y = function (v) { return T + ph * (1 - v / 100); };
+    var XD = function (d) { return L + (n < 2 ? 0 : pw * (d - d0) / (d1 - d0)); };
+    trend.geo = { L: L, pw: pw, X: X, n: n };
+    g.font = '11px ' + getComputedStyle(document.body).getPropertyValue('--mono'); g.textBaseline = 'middle';
+    [0, 50, 100].forEach(function (v) {
+      g.strokeStyle = rgb(C.line); g.lineWidth = 1; g.beginPath(); g.moveTo(L, Y(v) + 0.5); g.lineTo(L + pw, Y(v) + 0.5); g.stroke();
+      g.fillStyle = rgb(C.muted); g.textAlign = 'right'; g.fillText(v + '%', L - 6, Y(v));
+    });
+    g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillStyle = rgb(C.muted);
+    g.fillText('Day ' + Math.floor(d0), L, h - 4); g.textAlign = 'right'; g.fillText(trend.live ? 'Now' : 'Day ' + Math.floor(d1), L + pw, h - 4);
+    if (n < 2) { g.textAlign = 'center'; g.fillText('Not enough history yet', L + pw / 2, T + ph / 2); return; }
+    // events strip under the plot
+    trend.events.forEach(function (ev) {
+      if (ev.day < d0 || ev.day > d1) return;
+      var ex = XD(ev.day), k2 = ev.cat;
+      g.fillStyle = rgb(k2 === 'keeper' ? C.accent : C.fg); g.strokeStyle = rgb(C.fg); g.lineWidth = 1.6;
+      g.beginPath();
+      if (k2 === 'new') { g.arc(ex, EY, 3.5, 0, 7); g.fill(); }
+      else if (k2 === 'loss') { g.moveTo(ex - 3.5, EY - 3.5); g.lineTo(ex + 3.5, EY + 3.5); g.moveTo(ex + 3.5, EY - 3.5); g.lineTo(ex - 3.5, EY + 3.5); g.stroke(); }
+      else if (k2 === 'weather') { g.moveTo(ex, EY - 4.5); g.lineTo(ex + 4.5, EY + 3.5); g.lineTo(ex - 4.5, EY + 3.5); g.closePath(); g.fill(); }
+      else { g.rect(ex - 3.5, EY - 3.5, 7, 7); g.fill(); }
+    });
+    var cols = [C.cgrow, C.cgraze, C.chunt], ends = [];
+    for (var l = 0; l < 3; l++) {
+      if (!ser[l].some(function (v) { return v > 0; })) continue;
+      g.strokeStyle = rgb(cols[l]); g.lineWidth = 2; g.setLineDash(DASH[l]); g.lineJoin = 'round'; g.beginPath();
+      ser[l].forEach(function (v, k) { if (k) g.lineTo(X(k), Y(v)); else g.moveTo(X(k), Y(v)); });
+      g.stroke(); g.setLineDash([]);
+      ends.push({ l: l, y: Y(ser[l][n - 1]), v: ser[l][n - 1] });
+    }
+    // direct labels at the right, nudged apart
+    ends.sort(function (a, b) { return a.y - b.y; });
+    for (var e = 1; e < ends.length; e++) if (ends[e].y - ends[e - 1].y < 14) ends[e].y = ends[e - 1].y + 14;
+    ends.forEach(function (en) {
+      g.strokeStyle = rgb(cols[en.l]); g.lineWidth = 2; g.setLineDash(DASH[en.l]);
+      g.beginPath(); g.moveTo(L + pw + 6, en.y); g.lineTo(L + pw + 18, en.y); g.stroke(); g.setLineDash([]);
+      g.fillStyle = rgb(C.fg); g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.fillText(ROLEP[en.l] + ' ' + Math.round(en.v) + '%', L + pw + 22, en.y);
+    });
+    var tip = $('tip');
+    if (hover == null) { tip.hidden = true; return; }
+    var k = hover, x = X(k);
+    g.strokeStyle = rgb(C.muted); g.lineWidth = 1; g.beginPath(); g.moveTo(x + 0.5, T); g.lineTo(x + 0.5, T + ph); g.stroke();
+    var rows = '';
+    for (var l2 = 0; l2 < 3; l2++) {
+      if (!ser[l2].some(function (v) { return v > 0; })) continue;
+      g.fillStyle = rgb(cols[l2]); g.strokeStyle = rgb(C.panel); g.lineWidth = 2;
+      g.beginPath(); g.arc(x, Y(ser[l2][k]), 4, 0, 7); g.fill(); g.stroke();
+      rows += '<br>' + ROLEP[l2] + ' <b>' + Math.round(ser[l2][k]) + '%</b>';
+    }
+    var kinds = 0; Hh.order.forEach(function (nm) { if (Hh.rec[nm].totals[k] != null) kinds++; });
+    var lo = k ? Hh.days[k - 1] : -1, evs = trend.events.filter(function (ev) { return ev.day > lo && ev.day <= Hh.days[k]; });
+    var evh = evs.slice(0, 4).map(function (ev) { return '<br>' + EVSYM[ev.cat] + ' ' + esc(ev.short); }).join('') + (evs.length > 4 ? '<br>…and ' + (evs.length - 4) + ' more' : '');
+    tip.innerHTML = '<b>Day ' + Math.floor(Hh.days[k]) + (k === n - 1 && trend.live ? ' (now)' : '') + '</b>' + rows + '<br>Living kinds <b>' + kinds + '</b>' + evh;
+    tip.hidden = false;
+    var tw = tip.offsetWidth; tip.style.left = Math.max(0, Math.min(w - tw, x + 10 > w - tw ? x - tw - 10 : x + 10)) + 'px'; tip.style.top = '8px';
+  }
+  function trendPick(ev) {
+    if (!trend || !trend.geo || trend.geo.n < 2) return;
+    var rc = $('trend').getBoundingClientRect(), x = ev.clientX - rc.left, best = 0, bd = 1e9;
+    for (var k = 0; k < trend.geo.n; k++) { var d = Math.abs(trend.geo.X(k) - x); if (d < bd) { bd = d; best = k; } }
+    drawTrend(best);
+  }
+  $('trend').addEventListener('pointermove', trendPick);
+  $('trend').addEventListener('pointerdown', trendPick);
+  $('trend').addEventListener('pointerleave', function (ev) { if (ev.pointerType === 'mouse') drawTrend(null); });
+
+  function lifeWords(o) {
+    return o.alive ? 'since day ' + Math.floor(o.born) : 'day ' + Math.floor(o.born) + ' to day ' + Math.floor(o.died) + ', died out';
+  }
+  function drawExtras(s, Hh, live) {
+    // over time
+    trend = { H: Hh, ser: roleSeries(Hh), events: eventsOf(s.log), live: live };
+    $('trendrange').textContent = Hh.days.length ? 'day ' + Math.floor(Hh.days[0]) + ' to ' + (live ? 'now' : 'day ' + s.day) : '';
+    var evLegend = '<span>● new species</span><span>✕ loss or crash</span><span>▲ weather</span><span style="color:var(--accent)">■ <span style="color:var(--muted)">keeper</span></span>';
+    $('trendlegend').innerHTML = [0, 1, 2].map(function (l) {
+      var dash = DASH[l].length ? ' stroke-dasharray="' + DASH[l].join(' ') + '"' : '';
+      return '<span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="var(--c' + ['grow', 'graze', 'hunt'][l] + ')" stroke-width="2" stroke-linecap="round"' + dash + '/></svg>' + ROLEP[l] + '</span>';
+    }).join('') + '<span style="flex-basis:100%;height:0" aria-hidden="true"></span>' + evLegend;
+    drawTrend(null);
+    var rows = '', ser = trend.ser;
+    for (var k = Hh.days.length - 1, c = 0; k >= 0 && c < 40; k--, c++) {
+      var kinds = 0; Hh.order.forEach(function (nm) { if (Hh.rec[nm].totals[k] != null) kinds++; });
+      rows += '<tr><td>' + (k === Hh.days.length - 1 && live ? 'Now' : 'Day ' + Math.floor(Hh.days[k])) + '</td><td>' + Math.round(ser[0][k]) + '%</td><td>' + Math.round(ser[1][k]) + '%</td><td>' + Math.round(ser[2][k]) + '%</td><td>' + kinds + '</td></tr>';
+    }
+    $('trendtable').innerHTML = '<table><thead><tr><th>Day</th><th>Growers</th><th>Grazers</th><th>Hunters</th><th>Kinds</th></tr></thead><tbody>' + rows + '</tbody></table>';
+
+    // family tree
+    var kids = {}, roots = [], aliveN = 0;
+    Hh.order.forEach(function (nm) { var o = Hh.rec[nm].obj; if (o.alive) aliveN++; if (!o.parent) roots.push(nm); else (kids[o.parent] = kids[o.parent] || []).push(nm); });
+    function node(nm) {
+      var o = Hh.rec[nm].obj;
+      return '<li class="' + (o.alive ? '' : 'dead') + '"><span class="tn"><canvas data-tree="' + esc(nm) + '" aria-hidden="true"></canvas><span><b>' + esc(nm) + '</b><small>' + ROLEWORD[o.lvl] + ' · ' + lifeWords(o) + '</small></span></span>' +
+        (kids[nm] ? '<ul>' + kids[nm].map(node).join('') + '</ul>' : '') + '</li>';
+    }
+    var th = '<ul class="tree">' + roots.map(node).join('') + '</ul>';
+    if (kids['the keeper']) th += '<p class="treehead">Released by the keeper</p><ul class="tree">' + kids['the keeper'].map(node).join('') + '</ul>';
+    $('tree').innerHTML = th;
+    $('treecount').textContent = Hh.order.length + ' kinds ever, ' + aliveN + ' alive';
+    [].forEach.call($('tree').querySelectorAll('canvas[data-tree]'), function (cv) { icon(cv, Hh.rec[cv.dataset.tree].obj, 60); });
+
+    // predictions
+    var all = [];
+    KEEPER.forEach(function (en) { (en.checks || []).forEach(function (c) { all.push({ c: c, made: en.day, res: judge(c, en.day, Hh) }); }); });
+    var tally = { ok: 0, bad: 0, wait: 0, cant: 0 };
+    all.forEach(function (p) { tally[p.res.st]++; });
+    $('score').innerHTML = all.length
+      ? '<span>Right <b>' + tally.ok + '</b></span><span>Wrong <b>' + tally.bad + '</b></span><span>Waiting <b>' + tally.wait + '</b></span>' + (tally.ok + tally.bad ? '<span>Hit rate <b>' + Math.round(tally.ok / (tally.ok + tally.bad) * 100) + '%</b></span>' : '')
+      : '';
+    var LBL = { ok: '✓ Right', bad: '✗ Wrong', wait: '… Waiting', cant: '? Can’t check' };
+    $('preds').innerHTML = all.length ? all.slice().reverse().map(function (p) {
+      var when = p.res.st === 'wait' ? 'judged at the end of day ' + p.c.by + ' (' + dueIn(p.c.by) + ')' : 'judged at the end of day ' + p.c.by + (p.res.got ? ': ' + esc(p.res.got) : '');
+      return '<div class="pred"><span class="chip ' + p.res.st + '">' + LBL[p.res.st] + '</span><div><p>' + esc(p.c.say || '') + '</p><small>Made on day ' + p.made + ' · ' + when + '</small></div></div>';
+    }).join('') : '<p class="lede2">No checkable predictions yet. The next visit will write the first ones.</p>';
+  }
+  function dueIn(by) {
+    var ms = Reef.EPOCH + (by + 1) * Reef.TPD * Reef.TICKMS - Date.now();
+    if (ms <= 0) return 'due now';
+    var m = Math.ceil(ms / 60000), h = Math.floor(m / 60);
+    return 'in ' + (h ? h + 'h ' + (m % 60) + 'm' : m + 'm');
+  }
+  function judge(c, made, Hh) {
+    var idx = Hh.days.indexOf(c.by + 1);
+    if (idx < 0) return { st: 'wait' };
+    var r = c.species ? Hh.rec[c.species] : null;
+    function at(rr) { return rr ? rr.totals[idx] : null; }
+    function peakTo(rr) { var pk = 0; for (var k = 0; k <= idx; k++) if (rr.totals[k] > pk) pk = rr.totals[k]; return pk; }
+    function kindsAt() { var n = 0; Hh.order.forEach(function (nm) { if (Hh.rec[nm].totals[idx] != null) n++; }); return n; }
+    var needSp = ['alive', 'gone', 'below_peak', 'at_peak', 'patches_at_least', 'patches_at_most', 'more_than'];
+    if (needSp.indexOf(c.test) >= 0 && !r) return { st: 'cant', got: 'no species called ' + (c.species || '(none)') };
+    var v = r ? at(r) : null, ok, got;
+    switch (c.test) {
+      case 'alive': ok = v != null; got = ok ? 'still alive' : 'it had died out'; break;
+      case 'gone': ok = v == null; got = ok ? 'it had died out' : 'still alive'; break;
+      case 'below_peak': case 'at_peak':
+        var pk = peakTo(r), below = v != null && pk ? Math.round((1 - v / pk) * 100) : 100;
+        ok = c.test === 'at_peak' ? below <= 5 : (v == null ? true : below >= Math.max(1, c.pct || 0));
+        got = v == null ? 'it had died out' : below <= 0 ? 'at its highest so far' : below + '% below its highest'; break;
+      case 'patches_at_least': case 'patches_at_most':
+        var p = r.patches[idx] || 0; ok = c.test === 'patches_at_least' ? p >= c.n : p <= c.n; got = 'held ' + p + (p === 1 ? ' patch' : ' patches'); break;
+      case 'more_than':
+        var o = Hh.rec[c.other]; if (!o) return { st: 'cant', got: 'no species called ' + c.other };
+        var a = v || 0, b = at(o) || 0; ok = a > b; got = (ok ? c.species : c.other) + ' had more'; break;
+      case 'kinds_at_least': case 'kinds_at_most':
+        var kn = kindsAt(); ok = c.test === 'kinds_at_least' ? kn >= c.n : kn <= c.n; got = kn + ' living kinds'; break;
+      case 'new_kinds_at_least':
+        var nn = 0; Hh.order.forEach(function (nm) { var b0 = Hh.rec[nm].obj.born; if (b0 > made && b0 <= c.by) nn++; }); ok = nn >= c.n; got = nn + ' new ' + (nn === 1 ? 'kind' : 'kinds'); break;
+      default: return { st: 'cant', got: 'unknown test ' + c.test };
+    }
+    return { st: ok ? 'ok' : 'bad', got: got };
+  }
+
+  var sinceDone = false;
+  function ago(ms) { var m = Math.round(ms / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24); return d >= 1 ? d + (d === 1 ? ' day' : ' days') : h >= 1 ? h + (h === 1 ? ' hour' : ' hours') : Math.max(1, m) + (m === 1 ? ' minute' : ' minutes'); }
+  function sinceLastLook(s, Hh) {
+    if (sinceDone) return; sinceDone = true;
+    var prev = null, now = { tick: s.tick, at: Date.now(), k: KEEPER.length, n: (typeof NOTES !== 'undefined' ? NOTES.length : 0) };
+    try { prev = JSON.parse(localStorage.getItem('reef-seen') || 'null'); localStorage.setItem('reef-seen', JSON.stringify(now)); } catch (e) {}
+    if (!prev || typeof prev.tick !== 'number' || prev.tick >= s.tick) return;
+    var fromDay = prev.tick / Reef.TPD, items = [];
+    // predictions judged in between
+    KEEPER.forEach(function (en) { (en.checks || []).forEach(function (c) {
+      var due = (c.by + 1) * Reef.TPD; if (due <= prev.tick || due > s.tick) return;
+      var r = judge(c, en.day, Hh); if (r.st === 'ok' || r.st === 'bad') items.push((r.st === 'ok' ? '✓ Prediction right: ' : '✗ Prediction wrong: ') + esc(c.say));
+    }); });
+    // what the reef did
+    var evs = s.log.filter(function (x) { return x.day > fromDay && x.kind !== 'keeper'; });
+    evs.slice(-4).reverse().forEach(function (x) { items.push(esc(x.text.replace(/\. It .*$/, '.'))); });
+    if (evs.length > 4) items.push('…and ' + (evs.length - 4) + ' more in the chronicle');
+    // biggest mover
+    var k0 = -1; for (var k = 0; k < Hh.days.length; k++) if (Hh.days[k] <= fromDay) k0 = k;
+    if (k0 >= 0) {
+      var best = null, bv = 0;
+      Hh.order.forEach(function (nm) { var r = Hh.rec[nm], a = r.totals[k0], b = r.totals[Hh.days.length - 1]; if (a && b) { var ch = b / a - 1; if (Math.abs(ch) > Math.abs(bv)) { bv = ch; best = nm; } } });
+      if (best && Math.abs(bv) >= 0.1) items.push('Biggest change: ' + esc(best) + ' ' + (bv > 0 ? 'up ' : 'down ') + Math.round(Math.abs(bv) * 100) + '%');
+    }
+    if (KEEPER.length > (prev.k || 0)) items.push('A new keeper’s visit, on the Visits tab');
+    if (typeof NOTES !== 'undefined' && NOTES.length > (prev.n || 0)) items.push('A new note forward, on the Visits tab');
+    if (!items.length) items.push('Nothing much. The reef carried on quietly.');
+    var box = $('since');
+    box.innerHTML = '<div class="sh"><b>Since you last looked</b><button type="button" id="sinceok">Got it</button></div>' +
+      '<span style="color:var(--muted);font-family:var(--mono);font-size:11px">' + ago(Date.now() - (prev.at || Date.now())) + ' ago, day ' + Math.floor(fromDay) + ' to day ' + s.day + '</span>' +
+      '<ul>' + items.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>';
+    box.hidden = false;
+    $('sinceok').addEventListener('click', function () { box.hidden = true; });
+  }
+
+  function render(s, live, Hh) {
+    last = s; H = Hh = Hh || H;
+    if (hl && !s.species.some(function (q) { return q.alive && q.name === hl; })) hl = null;
+    var e = s.env, rising = Reef.tideAt(s.tick + 1) > Reef.tideAt(s.tick);
+    var lightPct = Math.round(e.light * 100);
+    $('status').innerHTML =
+      '<span><b>' + fmtDay(s.day) + '</b> · ' + WATCH[s.quarter] + ' watch</span>' +
+      '<span>Season <b>' + e.season + '</b></span>' +
+      '<span>Water <b>' + (e.temp > 0.35 ? 'warm' : e.temp < -0.35 ? 'cold' : 'mild') + '</b></span>' +
+      '<span' + (e.eclipse ? ' class="warn"' : '') + '>Light <b>' + (e.eclipse ? 'eclipsed' : lightPct + '%') + '</b></span>' +
+      '<span' + (e.expo > 0.18 ? ' class="warn"' : '') + '>Tide <b>' + (rising ? 'rising' : 'falling') + '</b>' + (e.expo > 0.18 ? ', flats out' : '') + '</span>' +
+      (live ? '<span>Next change <b id="nextchg">…</b></span><span>Day ' + (s.day + 1) + ' in <b id="nextday">…</b></span>' : '');
+    tickClock();
+
+    drawMap(s);
+
+    // species
+    var alive = s.species.filter(function (q) { return q.alive; });
+    var out = '';
+    for (var l = 0; l < 3; l++) {
+      var group = alive.filter(function (q) { return q.lvl === l; }).sort(function (a, b) { return b.total - a.total; });
+      var max = group.reduce(function (m, q) { return Math.max(m, q.total); }, 0) || 1;
+      out += '<div><div class="lvlname">' + LV[l] + ' · ' + group.length + '</div>';
+      if (!group.length) out += '<div class="sp"><span></span><span class="n" style="color:var(--muted);font-weight:400">None left. The reef may evolve new ones.</span></div>';
+      group.forEach(function (q) {
+        out += '<div class="sp pick' + (hl === q.name ? ' on' : '') + '" role="button" tabindex="0" aria-pressed="' + (hl === q.name) + '" data-name="' + esc(q.name) + '" title="Find on the map"><canvas class="g" data-sp="' + q.id + '" width="80" height="80" aria-hidden="true"></canvas><span class="n">' + esc(q.name) + '</span>' +
+          '<canvas class="spark" data-spark="' + esc(q.name) + '" aria-hidden="true"></canvas>' +
+          '<span class="meta">' + (q.parent ? 'From ' + esc(q.parent) + ', ' + fmtDay(q.born).toLowerCase() : 'Founder') + ' · ' + traits(q) + '<br>' + peakWords(q) + '</span></div>';
+      });
+      out += '</div>';
+    }
+    $('species').innerHTML = out;
+    [].forEach.call($('species').querySelectorAll('canvas[data-sp]'), function (cv) {
+      var z = aliveById(s, +cv.dataset.sp); if (z) icon(cv, z, 80);
+    });
+    [].forEach.call($('species').querySelectorAll('canvas[data-spark]'), function (cv) { spark(cv, H.rec[cv.dataset.spark]); });
+    drawExtras(s, H, live);
+    if (live) sinceLastLook(s, H);
+    $('census').textContent = alive.length + ' living kinds';
+    var lost = s.species.filter(function (q) { return !q.alive; });
+    var lostAll = s.log.filter(function (x) { return x.kind === 'extinct'; });
+    $('lostbox').hidden = !lostAll.length;
+    $('lostsum').textContent = 'Lost species · ' + lostAll.length;
+    $('lost').innerHTML = lostAll.slice().reverse().slice(0, 60).map(function (x) { return '<li>' + fmtDay(x.day) + ': ' + esc(x.text) + '</li>'; }).join('');
+
+    // chronicle
+    var log = s.log.slice().reverse();
+    var shown = showAll ? log : log.slice(0, 25);
+    $('chron').innerHTML = shown.map(function (x) { return '<li class="' + x.kind + '"><span class="d">' + fmtDay(x.day) + '</span><span class="t">' + esc(x.text) + '</span></li>'; }).join('');
+    $('more').hidden = showAll || log.length <= 25;
+
+    // keeper log
+    $('keeperlog').innerHTML = KEEPER.length ? '' : '<p class="lede2">No visits yet. The first keeper starts the story.</p>';
+    if (KEEPER.length) $('keeperlog').innerHTML = KEEPER.slice().reverse().map(function (k) {
+      var NAMES = { none: 'Watched, changed nothing', rain: 'Sent a nutrient rain', cool: 'Cooled the water', warm: 'Warmed the water', calm: 'Held the storms back', shade: 'Cast a shade', raise: 'Raised the seabed', dig: 'Dug a hollow', seed: 'Released a new species' };
+      var act = (k.actions || [k]).map(function (a) { return NAMES[a.kind] + (a.kind === 'seed' && a.species ? ' (' + a.species.name + ')' : ''); }).join(' + ');
+      return '<div class="entry"><div class="h">' + fmtDay(k.day) + ' · ' + esc(k.date) + ' · ' + act + '</div>' + k.note.split('\n\n').map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>';
+    }).join('');
+
+    $('notelog').innerHTML = (typeof NOTES !== 'undefined' && NOTES.length ? NOTES : [{ date: '', text: 'No notes yet.' }]).slice().reverse().map(function (n) {
+      return '<div class="entry"><div class="h">' + esc(n.date) + '</div>' + n.text.split('\n\n').map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>';
+    }).join('');
+    var nowDay = Math.floor(Reef.tickNow(Date.now()) / Reef.TPD);
+    $('day').max = nowDay; $('day').value = live ? nowDay : s.day;
+    $('dayrange').textContent = 'Day 0 to ' + nowDay;
+    $('viewing').textContent = live ? 'Viewing now' : 'Viewing the end of day ' + s.day;
+    $('now').hidden = live;
+    document.getElementById('app').classList.remove('busy');
+  }
+
+  var TABS = ['life', 'time', 'visits'];
+  function showTab(name, focus) {
+    TABS.forEach(function (t) {
+      var on = t === name, b = $('t-' + t);
+      b.setAttribute('aria-selected', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1;
+      $('tab-' + t).hidden = !on;
+      if (on && focus) b.focus();
+    });
+    try { localStorage.setItem('reef-tab', name); } catch (e) {}
+    if (name === 'time') drawTrend(null);
+  }
+  TABS.forEach(function (t, k) {
+    $('t-' + t).addEventListener('click', function () { showTab(t); });
+    $('t-' + t).addEventListener('keydown', function (ev) {
+      var d = ev.key === 'ArrowRight' ? 1 : ev.key === 'ArrowLeft' ? -1 : 0;
+      if (d) { ev.preventDefault(); showTab(TABS[(k + d + 3) % 3], true); }
+    });
+  });
+  (function () {
+    var h = (location.hash || '').replace('#', ''), saved = null;
+    try { saved = localStorage.getItem('reef-tab'); } catch (e) {}
+    var pick = TABS.indexOf(h) >= 0 ? h : TABS.indexOf(saved) >= 0 ? saved : 'life';
+    if (pick !== 'life') showTab(pick);
+  })();
+
+  function compute(tick, live) {
+    document.getElementById('app').classList.add('busy');
+    setTimeout(function () { var col = collect(), st = Reef.run(tick, KEEPER, col.watch); col.finish(); render(st, live, col.H); }, 20);
+  }
+  function showNow() { viewTick = null; compute(Reef.tickNow(Date.now()), true); }
+
+  var timer;
+  $('day').addEventListener('input', function () {
+    var d = +this.value, nowT = Reef.tickNow(Date.now()), nowDay = Math.floor(nowT / Reef.TPD);
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      if (d >= nowDay) showNow(); else { viewTick = (d + 1) * Reef.TPD; compute(viewTick, false); }
+    }, 180);
+  });
+  $('now').addEventListener('click', showNow);
+  $('more').addEventListener('click', function () { showAll = true; if (last) render(last, viewTick === null, H); });
+
+  function tickClock() {
+    var el = document.getElementById('nextchg'), dl = document.getElementById('nextday'); if (!el || !last) return;
+    function fmt(ms) { if (ms < 0) ms = 0; var m = Math.ceil(ms / 60000), h = Math.floor(m / 60); return h ? h + 'h ' + (m % 60) + 'm' : m + 'm'; }
+    el.textContent = fmt(Reef.EPOCH + (last.tick + 1) * Reef.TICKMS - Date.now());
+    if (dl) dl.textContent = fmt(Reef.EPOCH + (last.day + 1) * Reef.TPD * Reef.TICKMS - Date.now());
+  }
+  showNow();
+  setInterval(function () {
+    if (viewTick === null && last && Reef.tickNow(Date.now()) !== last.tick) showNow(); else tickClock();
+  }, 30 * 1000);
+})();
+</script>
+</body>
+</html>
