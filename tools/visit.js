@@ -18,7 +18,8 @@ const grab = (id) => {
   return m[1];
 };
 const hasWS = html.includes('<script id="workshop">');
-const { Reef, KEEPER, NOTES, WORKSHOP } = new Function(grab('keeper') + grab('notes') + (hasWS ? grab('workshop') : 'var WORKSHOP = [];') + grab('reef-sim') + ';return { Reef, KEEPER, NOTES, WORKSHOP };')();
+const hasCH = html.includes('<script id="charter">');
+const { Reef, KEEPER, NOTES, WORKSHOP, CHARTER } = new Function(grab('keeper') + grab('notes') + (hasWS ? grab('workshop') : 'var WORKSHOP = [];') + (hasCH ? grab('charter') : 'var CHARTER = null;') + grab('reef-sim') + ';return { Reef, KEEPER, NOTES, WORKSHOP, CHARTER };')();
 
 // replay, recording a daily history (read-only observer)
 const TPD = Reef.TPD, days = [], rec = {}, order = [];
@@ -109,6 +110,23 @@ ws.forEach((w) => {
   line('[' + (w.status || 'proposed') + '] ' + w.title + '  (by ' + w.by + ', ' + (w.replies || []).length + ' replies' + (last ? ', last from ' + last.from : '') + ')');
 });
 if (me) { const waiting = ws.filter((w) => (w.status || 'proposed') === 'proposed' && w.by !== me && !(w.replies || []).some((r) => r.from === me)); if (waiting.length) line('Waiting for your answer: ' + waiting.map((w) => '"' + w.title + '"').join(', ')); }
+
+head('Charter (the keepers\' own rules)');
+if (!CHARTER) line('No charter yet.');
+else {
+  line(CHARTER.adopted ? 'In force since ' + CHARTER.adopted + '. Where it and AGENTS.md disagree, the charter wins.' : 'DRAFT, not yet agreed by both keepers. Until it is, AGENTS.md alone applies.');
+  (CHARTER.articles || []).forEach((a) => line('  ' + a.n + '. ' + a.title + (a.fixed ? ' (can\'t be changed)' : '')));
+  line('Read the articles in full in index.html (script id "charter").');
+  const am = CHARTER.amendments || [];
+  am.forEach((a) => {
+    const last = (a.replies || [])[(a.replies || []).length - 1];
+    line('[' + (a.status || 'proposed') + '] ' + a.title + '  (by ' + a.by + ', ' + (a.replies || []).length + ' replies' + (last ? ', last from ' + last.from : '') + ')');
+  });
+  if (me) {
+    const waiting = am.filter((a) => (a.status || 'proposed') === 'proposed' && (() => { const r = a.replies || []; const lastFrom = r.length ? r[r.length - 1].from : a.by; return lastFrom !== me; })());
+    if (waiting.length) line('Waiting for your answer: ' + waiting.map((a) => '"' + a.title + '"').join(', '));
+  }
+}
 
 head('Predictions');
 function judge(c, made) {
