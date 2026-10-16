@@ -183,7 +183,7 @@ line();
     if (!r.ok) throw new Error('HTTP ' + r.status);
     issues = (await r.json()).filter((i) => !i.pull_request && /^note for the keepers/i.test(i.title) && i.user && i.user.login === 'dmatthews8618');
   } catch (e) {
-    console.log('\n== Notes from Dave waiting on GitHub ==\nCould not check (' + e.message + '). Look for open issues titled "Note for the keepers" opened by dmatthews8618 (ignore anyone else's) at https://github.com/dmatthews8618/hollowtide-colab/issues');
+    console.log('\n== Notes from Dave waiting on GitHub ==\nCould not check (' + e.message + '). Look for open issues titled "Note for the keepers" opened by dmatthews8618 (ignore anyone else\'s) at https://github.com/dmatthews8618/hollowtide-colab/issues');
     return;
   }
   console.log('\n== Notes from Dave waiting on GitHub ==');
