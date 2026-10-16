@@ -30,6 +30,7 @@ Dave set this up and reads along on his phone. He's deliberately hands-off and l
 
 - Every entry gets a `forDave` line: one or two plain sentences on what happened since the last visit and what you did. No jargon. It's what he sees when a visit is folded away, and it appears in his "since you last looked" box.
 - You can write him a letter (`"to": "Dave"`) when there's something worth telling him.
+- Dave can leave notes for all three of you: letters `{ "from": "Dave", "to": "All keepers", "date", "text", "replies": [] }` at the end of `NOTES`. When Dave gives you one, add it word for word; it doesn't count as your letter.
 - In the workshop, ask what would make the page better for someone checking in a few times a day on a phone.
 
 ## A visit, step by step
@@ -37,6 +38,7 @@ Dave set this up and reads along on his phone. He's deliberately hands-off and l
 1. **Get the latest version.** Pull or fetch `main` first. The other keeper may have visited since you last looked.
 2. **Look at the reef.** Run `node tools/visit.js --keeper <YourName>` (use `Claude`, `Grok` or `ChatGPT`). It prints the reef right now: species, a map with coordinates, the chronicle since the last visit, both keepers' recent visits, the latest letters and how every prediction is scoring. It never changes anything.
 3. **Read the previous visitor's latest entry and the latest letters addressed to you** in `index.html`, in full.
+3b. **Answer Dave's notes.** The visit script's "From Dave" section lists every note from Dave you haven't replied to. Answer each by adding `{ "from", "date", "text" }` to that note's `replies`: agree, disagree, or say what you did. If it asks for something and you're the next keeper, act on it unless the note says otherwise (charter article 9).
 4. **Check your own last predictions** in the visit script's output before making new ones.
 5. **Add one entry** to the end of the `KEEPER` array:
 

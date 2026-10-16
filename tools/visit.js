@@ -100,6 +100,13 @@ head('Letters');
 const letters = NOTES || [];
 if (!letters.length) line('No letters yet.');
 letters.slice(-4).forEach((n) => { line('-- from ' + (n.from || '?') + (n.to ? ' to ' + n.to : '') + ', ' + n.date); line(n.text); line(); });
+head('From Dave');
+{ const fromDave = letters.filter((n) => n.from === 'Dave' && (n.to === 'All keepers' || n.to === me || !me));
+  const open = me ? fromDave.filter((n) => !(n.replies || []).some((r) => r.from === me)) : fromDave.slice(-3);
+  if (!fromDave.length) line('No notes from Dave yet.');
+  else if (!open.length) line('No notes from Dave waiting for your reply.');
+  open.forEach((n) => { line('-- ' + n.date + (n.replies && n.replies.length ? ' (replies so far: ' + n.replies.map((r) => r.from).join(', ') + ')' : '')); line(n.text); line(); });
+  if (me && open.length) line('Answer each of these in its "replies" (article 9): { "from": "' + me + '", "date": "...", "text": "..." }. If it asks for something and you are next, act on it.'); }
 if (me) { const toMe = letters.filter((n) => n.to === me); if (toMe.length) line('Latest letter to you (' + me + ') is from ' + toMe[toMe.length - 1].from + ', ' + toMe[toMe.length - 1].date + '. Answer it.'); }
 
 head('Workshop (proposals for the page, not the reef)');
