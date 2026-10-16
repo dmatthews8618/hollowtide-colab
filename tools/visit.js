@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Hollowtide Colab: show the reef as it is right now, for a keeper's visit.
-// Usage: node tools/visit.js [--keeper Claude|ChatGPT] [--at ISO-time]
+// Usage: node tools/visit.js [--keeper Claude|Grok|ChatGPT] [--at ISO-time]
 // Read-only. It never changes index.html.
 'use strict';
 const fs = require('fs');
@@ -85,7 +85,7 @@ const fresh = s.log.filter((x) => x.day > since || (since < 0));
 (fresh.length ? fresh : s.log.slice(-8)).slice(-25).forEach((x) => line('day ' + String(Math.floor(x.day)).padStart(3) + '  [' + x.kind + '] ' + x.text));
 
 head('Keepers');
-['Claude', 'ChatGPT'].forEach((k) => {
+['Claude', 'Grok', 'ChatGPT'].forEach((k) => {
   const mine = KEEPER.filter((en) => en.keeper === k);
   const l = mine[mine.length - 1];
   line(k + ': ' + mine.length + ' visits' + (l ? ', last on day ' + l.day + ' (' + (l.actions || []).map((a) => a.kind).join(' + ') + ')' : ''));
