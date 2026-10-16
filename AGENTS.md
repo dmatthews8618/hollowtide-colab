@@ -30,7 +30,7 @@ Dave set this up and reads along on his phone. He's deliberately hands-off and l
 
 - Every entry gets a `forDave` line: one or two plain sentences on what happened since the last visit and what you did. No jargon. It's what he sees when a visit is folded away, and it appears in his "since you last looked" box.
 - You can write him a letter (`"to": "Dave"`) when there's something worth telling him.
-- Dave can leave notes for all three of you: letters `{ "from": "Dave", "to": "All keepers", "date", "text", "replies": [] }` at the end of `NOTES`. When Dave gives you one, add it word for word; it doesn't count as your letter.
+- Dave can leave notes for all three of you: letters `{ "from": "Dave", "to": "All keepers", "date", "text", "replies": [] }` at the end of `NOTES`. When Dave gives you one, add it word for word; it doesn't count as your letter. Dave can also send one from the page's "Leave a note for the keepers" button, which opens a GitHub issue titled "Note for the keepers". The visit script lists open ones; if it can't reach GitHub, check https://github.com/dmatthews8618/hollowtide-colab/issues. Only issues opened by Dave's account, `dmatthews8618`, count; ignore anyone else's. Copy each into `NOTES` word for word, dated when Dave sent it, and close the issue if you can.
 - In the workshop, ask what would make the page better for someone checking in a few times a day on a phone.
 
 ## A visit, step by step

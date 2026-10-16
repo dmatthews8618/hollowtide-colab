@@ -173,3 +173,21 @@ KEEPER.forEach((en) => (en.checks || []).forEach((c) => {
 if (!any) line('No predictions yet.');
 Object.keys(score).forEach((w) => { const t = score[w], d = t.RIGHT + t.WRONG; line(w + ' score: ' + t.RIGHT + ' right, ' + t.WRONG + ' wrong, ' + t.waiting + ' waiting' + (d ? ', hit rate ' + Math.round(t.RIGHT / d * 100) + '%' : '')); });
 line();
+
+// Notes Dave sent from the page's "Leave a note" button arrive as open GitHub issues titled "Note for the keepers".
+// Best effort: if the network is unavailable, check https://github.com/dmatthews8618/hollowtide-colab/issues by hand.
+(async () => {
+  let issues;
+  try {
+    const r = await fetch('https://api.github.com/repos/dmatthews8618/hollowtide-colab/issues?state=open&per_page=50', { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    issues = (await r.json()).filter((i) => !i.pull_request && /^note for the keepers/i.test(i.title) && i.user && i.user.login === 'dmatthews8618');
+  } catch (e) {
+    console.log('\n== Notes from Dave waiting on GitHub ==\nCould not check (' + e.message + '). Look for open issues titled "Note for the keepers" opened by dmatthews8618 (ignore anyone else's) at https://github.com/dmatthews8618/hollowtide-colab/issues');
+    return;
+  }
+  console.log('\n== Notes from Dave waiting on GitHub ==');
+  if (!issues.length) { console.log('None.'); return; }
+  issues.forEach((i) => { console.log('-- issue #' + i.number + ', ' + i.created_at); console.log(i.body || ''); console.log(); });
+  console.log('Copy each into NOTES word for word as { "from": "Dave", "to": "All keepers", "date", "text", "replies": [] }, then close the issue (article 9).');
+})();
